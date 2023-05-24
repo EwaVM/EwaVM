@@ -1,6 +1,6 @@
 #include <def.h>
 
-namespace ewasvm
+namespace EwaVM
 {
 
     // Reads a string from the bytes array at pos that starts with a LEB length
@@ -227,16 +227,16 @@ namespace ewasvm
 
                     switch (external_kind)
                     {
-                    case PWART_KIND_FUNCTION:
+                    case SYMBOL_KIND_FUNCTION:
                         type_index = read_LEB(bytes, &pos, 32);
                         break;
-                    case PWART_KIND_TABLE:
+                    case SYMBOL_KIND_TABLE:
                         parse_table_type(m, &pos, &info.tab);
                         break;
-                    case PWART_KIND_MEMORY:
+                    case SYMBOL_KIND_MEMORY:
                         parse_memory_type(m, &pos, &info.mem);
                         break;
-                    case PWART_KIND_GLOBAL:
+                    case SYMBOL_KIND_GLOBAL:
                         content_type = read_LEB(bytes, &pos, 7);
                         // TODO: use mutability
                         mutability = read_LEB(bytes, &pos, 1);
@@ -247,7 +247,7 @@ namespace ewasvm
                     val = NULL;
                     if (m->import_resolver != NULL)
                     {
-                        struct pwart_symbol_resolve_request req;
+                        struct ewa_symbol_resolve_request req;
                         req.import_module = import_module;
                         req.import_field = import_field;
                         req.kind = external_kind;
@@ -256,23 +256,23 @@ namespace ewasvm
                         val = req.result;
                     }
 
-                    if (val == NULL && !strcmp("pwart_builtin", import_module))
+                    if (val == NULL && !strcmp("ewa_builtin", import_module))
                     {
                         int arrlen = 0, i1 = 0;
-                        struct pwart_named_symbol *builtin = pwart_get_builtin_symbols(&arrlen);
+                        struct ewa_named_symbol *builtin = ewa_get_builtin_symbols(&arrlen);
                         for (i1 = 0; i1 < arrlen; i1++)
                         {
                             if (!strcmp(builtin[i1].name, import_field))
                             {
                                 switch (external_kind)
                                 {
-                                case PWART_KIND_FUNCTION:
+                                case SYMBOL_KIND_FUNCTION:
                                     val = builtin[i1].val.fn;
                                     break;
-                                case PWART_KIND_MEMORY:
+                                case SYMBOL_KIND_MEMORY:
                                     val = builtin[i1].val.mem;
                                     break;
-                                case PWART_KIND_TABLE:
+                                case SYMBOL_KIND_TABLE:
                                     val = builtin[i1].val.tb;
                                     break;
                                 }
@@ -297,22 +297,22 @@ namespace ewasvm
 
                     switch (external_kind)
                     {
-                    case PWART_KIND_FUNCTION:
+                    case SYMBOL_KIND_FUNCTION:
                         fidx = m->functions->len;
                         m->import_count += 1;
                         func = dynarr_push_type(&m->functions, WasmFunction);
                         func->tidx = type_index;
                         func->func_ptr = (WasmFunctionEntry)val;
                         break;
-                    case PWART_KIND_TABLE:
-                        tval = (ewasvm::Table *)val;
+                    case SYMBOL_KIND_TABLE:
+                        tval = (EwaVM::Table *)val;
                         if (info.tab.initial > tval->maximum)
                         {
                             return "Imported table is not large enough";
                         }
                         *dynarr_push_type(&m->context->tables, Table *) = tval;
                         break;
-                    case PWART_KIND_MEMORY:
+                    case SYMBOL_KIND_MEMORY:
                         mval = (Memory *)val;
                         if (info.mem.initial > mval->maximum)
                         {
@@ -321,7 +321,7 @@ namespace ewasvm
                         *dynarr_push_type(&m->context->memories, Memory *) = mval;
 
                         break;
-                    case PWART_KIND_GLOBAL:
+                    case SYMBOL_KIND_GLOBAL:
                         sv = dynarr_push_type(&m->globals, StackValue);
                         sv->wasm_type = content_type;
                         sv->val.op = SLJIT_IMM | SLJIT_MEM;
@@ -354,7 +354,7 @@ namespace ewasvm
                 wa_debug("Parsing Table(4) section\n");
                 uint32_t table_count = read_LEB(bytes, &pos, 32);
                 m->context->own_tables_count = table_count;
-                m->context->own_tables = (ewasvm::Table *)wa_calloc(sizeof(Table) * table_count);
+                m->context->own_tables = (EwaVM::Table *)wa_calloc(sizeof(Table) * table_count);
                 wa_debug("  table count: 0x%x\n", table_count);
                 for (int i = 0; i < table_count; i++)
                 {
@@ -370,7 +370,7 @@ namespace ewasvm
                 wa_debug("Parsing Memory(5) section\n");
                 uint32_t memory_count = read_LEB(bytes, &pos, 32);
                 m->context->own_memories_count = memory_count;
-                m->context->own_memories = (ewasvm::Memory *)wa_calloc(sizeof(Memory) * memory_count);
+                m->context->own_memories = (EwaVM::Memory *)wa_calloc(sizeof(Memory) * memory_count);
                 wa_debug("  memory count: 0x%x\n", memory_count);
                 for (int i = 0; i < memory_count; i++)
                 {
@@ -465,16 +465,16 @@ namespace ewasvm
                         exp->export_name = name;
                         switch (external_kind)
                         {
-                        case PWART_KIND_FUNCTION:
+                        case SYMBOL_KIND_FUNCTION:
                             exp->value = dynarr_get(m->functions, WasmFunction, index);
                             break;
-                        case PWART_KIND_TABLE:
+                        case SYMBOL_KIND_TABLE:
                             exp->value = *dynarr_get(m->context->tables, Table *, index);
                             break;
-                        case PWART_KIND_MEMORY:
+                        case SYMBOL_KIND_MEMORY:
                             exp->value = *dynarr_get(m->context->memories, Memory *, index);
                             break;
-                        case PWART_KIND_GLOBAL:
+                        case SYMBOL_KIND_GLOBAL:
                             exp->value = (void *)dynarr_get(m->globals, StackValue, index)->val.opw;
                             break;
                         }
@@ -624,7 +624,7 @@ namespace ewasvm
                         }
                     }
                     m->pc = pos;
-                    ReturnIfErr(pwart_EmitFunction(m, function));
+                    ReturnIfErr(EmitFunction(m, function));
                     pos = m->pc;
                     wa_assert(bytes[pos - 1] == 0x0b,
                               "Code section did not end with 0x0b\n");
@@ -666,7 +666,7 @@ namespace ewasvm
         for (int i1 = 0; i1 < m->context->exports->len; i1++)
         {
             Export *exp = dynarr_get(m->context->exports, Export, i1);
-            if (exp->external_kind == PWART_KIND_FUNCTION)
+            if (exp->external_kind == SYMBOL_KIND_FUNCTION)
             {
                 exp->value = (void *)((WasmFunction *)exp->value)->func_ptr;
             }
@@ -728,7 +728,7 @@ namespace ewasvm
             for (i = rc->import_funcentries_count; i < rc->funcentries_count; i++)
             {
                 if (rc->funcentries != NULL)
-                    pwart_FreeFunction(rc->funcentries[i]);
+                    FreeFunction(rc->funcentries[i]);
             }
             wa_free(rc->funcentries);
             rc->funcentries = NULL;

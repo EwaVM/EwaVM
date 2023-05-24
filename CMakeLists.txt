@@ -1,19 +1,15 @@
 cmake_minimum_required(VERSION 3.12)
 
-project(ewasvm)
+project(EwaVM)
 
-aux_source_directory(ewasvm source_src)
-aux_source_directory(ewasvm/core core_src)
-aux_source_directory(ewasvm/opgen opgen_src)
+aux_source_directory(EwaVM source_src)
+aux_source_directory(EwaVM/core core_src)
+aux_source_directory(EwaVM/opgen opgen_src)
 
-add_compile_options(-fvisibility=hidden)
-add_compile_options(-fpermissive)
+add_compile_options(-ffunction-sections -fdata-sections -fvisibility=hidden -fvisibility-inlines-hidden -fpermissive)
 
-include_directories(${CMAKE_SOURCE_DIR}/ewasvm/include ${CMAKE_SOURCE_DIR}/sljit/sljit_src)
+include_directories(${CMAKE_SOURCE_DIR}/EwaVM/include ${CMAKE_SOURCE_DIR}/sljit/sljit_src)
 
-add_library(ewasvm STATIC ${source_src} ${core_src} ${opgen_src} ewasvm/sljit/sljit_src/sljitLir.c)
-
-# add_compile_options(-DEXPORT_SHARED=1)
-
-add_library(ewasvm_shared SHARED ${source_src} ${core_src} ${opgen_src} ewasvm/sljit/sljit_src/sljitLir.c)
-target_include_directories(ewasvm PUBLIC ewasvm/include)
+add_library(ewavm_shared SHARED ${source_src} ${core_src} ${opgen_src} EwaVM/sljit/sljit_src/sljitLir.c)
+add_library(ewavm STATIC ${source_src} ${core_src} ${opgen_src} EwaVM/sljit/sljit_src/sljitLir.c)
+target_include_directories(ewavm PUBLIC EwaVM/include)

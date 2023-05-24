@@ -11,11 +11,11 @@
 
 #include "../sljit/sljit_src/sljitLir.h"
 
-#include "wasvm.h"
+#include "ewavm.h"
 
-using namespace ewasvm;
+using namespace EwaVM;
 
-namespace ewasvm
+namespace EwaVM
 {
 
 #define WA_MAGIC 0x6d736100
@@ -124,9 +124,9 @@ namespace ewasvm
         } val;
     } StackValue;
 
-    typedef struct pwart_wasm_table Table;
+    typedef struct ewa_wasm_table Table;
 
-    typedef struct pwart_wasm_memory Memory;
+    typedef struct ewa_wasm_memory Memory;
 
     typedef struct Export
     {
@@ -137,7 +137,7 @@ namespace ewasvm
 
     typedef struct RuntimeContext
     {
-        uint8_t stack_flags;            // PWART_STACK_FLAGS_xxx
+        uint8_t stack_flags;            // ewa_STACK_FLAGS_xxx
         uint8_t is_in_namespace;        // if this context attached to namespace.
         struct pool strings_pool;       // string pools, type char
         uint32_t start_function;        // start function index,0xffffffff if none.
@@ -154,8 +154,8 @@ namespace ewasvm
         struct dynarr *tables;                  // tables, type Table *
         struct dynarr *memories;                // memories, type Memory *
         struct dynarr *exports;                 // exorts, type Export
-        struct pwart_symbol_resolver *resolver; // symbol resolver.
-        void *userdata;                         // user data, pwart don't use it.
+        struct ewa_symbol_resolver *resolver; // symbol resolver.
+        void *userdata;                         // user data, ewa don't use it.
     } RuntimeContext;
 
     // compile module info
@@ -181,7 +181,7 @@ namespace ewasvm
 
         struct dynarr *functions; // functions, type WasmFunction
 
-        struct pwart_symbol_resolver *import_resolver;
+        struct ewa_symbol_resolver *import_resolver;
 
         uint8_t compile_succeeded;
 
@@ -202,7 +202,7 @@ namespace ewasvm
 #endif
         Type *function_type;           // function type current processing.
         uint8_t *function_locals_type; // function locals type current processing.
-        struct dynarr *locals;         // function only, allocate after pwart_PrepareFunc, StackValue type
+        struct dynarr *locals;         // function only, allocate after PrepareFunc, StackValue type
         int16_t mem_base_local;        // index of local variable which store memory 0 base.
         int16_t table_entries_local;   // index of local variable which store the table 0 base.
         int16_t first_stackvalue_offset;
@@ -222,8 +222,8 @@ namespace ewasvm
 
     typedef struct
     {
-        struct pwart_symbol_resolver resolver;
-        struct dynarr *mods; // modules in this namespace, type pwart_named_module.
+        struct ewa_symbol_resolver resolver;
+        struct dynarr *mods; // modules in this namespace, type ewa_named_module.
     } Namespace;
 
 #if DEBUG_BUILD
@@ -479,11 +479,11 @@ namespace ewasvm
 
     static struct
     {
-        pwart_wasm_function get_self_runtime_context;
-        pwart_wasm_function ref_from_index;
-        pwart_wasm_function ref_from_i64;
-        pwart_wasm_function i64_from_ref;
-    } pwart_InlineFuncList;
+        ewa_wasm_function get_self_runtime_context;
+        ewa_wasm_function ref_from_index;
+        ewa_wasm_function ref_from_i64;
+        ewa_wasm_function i64_from_ref;
+    } ewa_InlineFuncList;
 
 #define WASMOPC_i32_wrap_i64 0xa7
 #define WASMOPC_i64_extend_i32_u 0xad
@@ -494,10 +494,10 @@ namespace ewasvm
 #define WASMOPC_i32_shl 0x74
 #define WASMOPC_i64_shl 0x86
 
-    Namespace *namespace_GetNamespaceFormResolver(struct pwart_symbol_resolver *_this);
-    void namespace_SymbolResolve(struct pwart_symbol_resolver *_this, struct pwart_symbol_resolve_request *req);
+    Namespace *namespace_GetNamespaceFormResolver(struct ewa_symbol_resolver *_this);
+    void namespace_SymbolResolve(struct ewa_symbol_resolver *_this, struct ewa_symbol_resolve_request *req);
 
-    extern struct pwart_global_compile_config pwart_gcfg;
+    extern struct ewa_global_compile_config ewa_gcfg;
 
     // modparser.cpp
     uint32_t read_string(uint8_t *bytes, uint32_t *pos, uint32_t maxlen, char *buf);
@@ -509,6 +509,6 @@ namespace ewasvm
     char *free_module(ModuleCompiler *m);
 
 };
-using namespace ewasvm;
+using namespace EwaVM;
 
 #include "opgen.h"

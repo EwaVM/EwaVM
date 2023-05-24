@@ -1,6 +1,6 @@
 #include <core.h>
 
-namespace ewasvm
+namespace EwaVM
 {
 
     void dynarr_init(struct dynarr **arr, uint32_t elemSize)

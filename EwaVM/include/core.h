@@ -11,7 +11,7 @@
 
 #include "../sljit/sljit_src/sljitLir.h"
 
-namespace ewasvm
+namespace EwaVM
 {
     // allocator.cpp
     void *wa_malloc(size_t size);
@@ -60,7 +60,7 @@ namespace ewasvm
     uint32_t read_uint32(uint8_t *bytes, uint32_t *pos);
 };
 
-using namespace ewasvm;
+using namespace EwaVM;
 
 // fast utils for dynarr
 #define dynarr_pop_type(dynarr1, typename) (typename *)dynarr_pop((struct dynarr **)dynarr1, 1)

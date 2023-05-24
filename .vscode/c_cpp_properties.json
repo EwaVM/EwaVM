@@ -4,7 +4,7 @@
             "name": "Win32",
             "includePath": [
                 "${workspaceFolder}/**",
-                "${workspaceFolder}/ewasvm/include"
+                "${workspaceFolder}/EwaVM/include"
             ],
             "defines": [
                 "_DEBUG",

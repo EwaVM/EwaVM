@@ -1,6 +1,6 @@
 #include <core.h>
 
-namespace ewasvm
+namespace EwaVM
 {
 
     static uint64_t read_LEB_(uint8_t *bytes, uint32_t *pos, uint32_t maxbits, int sign)

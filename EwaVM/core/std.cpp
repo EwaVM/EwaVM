@@ -1,6 +1,6 @@
 #include <core.h>
 
-namespace ewasvm
+namespace EwaVM
 {
 
     void wa_debug(const char *fmt, ...)

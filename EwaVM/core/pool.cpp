@@ -1,6 +1,6 @@
 #include <core.h>
 
-namespace ewasvm
+namespace EwaVM
 {
 
     void pool_init(struct pool *p, int chunk_size)
