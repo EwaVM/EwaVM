@@ -9,9 +9,9 @@
 
 #include <stdint.h>
 
-#include "../sljit/sljit_src/sljitLir.h"
+#include "../../sljit/sljit_src/sljitLir.h"
 
-#include "ewavm.h"
+#include <ewavm.h>
 
 using namespace EwaVM;
 

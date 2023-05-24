@@ -9,7 +9,7 @@
 
 #include <stdarg.h>
 
-#include "../sljit/sljit_src/sljitLir.h"
+#include "../../sljit/sljit_src/sljitLir.h"
 
 namespace EwaVM
 {

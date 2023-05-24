@@ -11,5 +11,11 @@ add_compile_options(-ffunction-sections -fdata-sections -fvisibility=hidden -fvi
 include_directories(${CMAKE_SOURCE_DIR}/EwaVM/include ${CMAKE_SOURCE_DIR}/sljit/sljit_src)
 
 add_library(ewavm_shared SHARED ${source_src} ${core_src} ${opgen_src} EwaVM/sljit/sljit_src/sljitLir.c)
-add_library(ewavm STATIC ${source_src} ${core_src} ${opgen_src} EwaVM/sljit/sljit_src/sljitLir.c)
-target_include_directories(ewavm PUBLIC EwaVM/include)
+add_library(ewavm_static STATIC ${source_src} ${core_src} ${opgen_src} EwaVM/sljit/sljit_src/sljitLir.c)
+
+target_include_directories(ewavm_static PUBLIC EwaVM/include)
+target_include_directories(ewavm_shared PUBLIC EwaVM/include)
+
+add_executable(ewavm cli/main.cpp)
+target_link_libraries(ewavm ewavm_shared)
+
