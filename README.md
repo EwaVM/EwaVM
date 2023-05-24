@@ -6,6 +6,10 @@
 
 EwaVM (a lightweight & embedded WebAssembly's VM) 是为下一代Serverless和Web容器而开发的轻量级可嵌入的WebAssembly虚拟机和运行时
 
+GitHub: https://github.com/EwaVM/EwaVM
+
+Gitee: https://gitee.com/ewa-vm/EwaVM
+
 ## 特点
 
 - 完全支持WebAssembly的字节码特性
@@ -15,8 +19,11 @@ EwaVM (a lightweight & embedded WebAssembly's VM) 是为下一代Serverless和We
 - 更强大的模块支持和多种语言绑定
 
 ## 支持情况
+
 支持操作系统：Windows Linux MacOS ...
+
 支持工具链：GCC、MinGW GCC、LLVM Clang、TinyCC
+
 支持架构 (SLJIT)：X86/64、ARM/ARM64/AArch64、RISC-V 32/64、MIPS 32/64、PowerPC 32/64
 
 ## 开发情况
@@ -32,6 +39,9 @@ EwaVM (a lightweight & embedded WebAssembly's VM) 是为下一代Serverless和We
 - 提供更多例程和语言绑定
 
 ## 致谢
+
 Standrard: https://webassembly.org/
+
 SLJIT: https://github.com/zherczeg/sljit
+
 Tools: https://github.com/WebAssembly/wabt
