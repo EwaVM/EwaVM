@@ -9,6 +9,7 @@ namespace EwaVM
 
     //
     // Stack machine (byte code related functions)
+    // 堆栈实现
     //
     uint32_t wasmtype_GetSizeAndAlign(int wasm_type, uint32_t *align)
     {
@@ -78,6 +79,7 @@ namespace EwaVM
         SLJIT_UNREACHABLE();
       }
     }
+
     void stackvalue_LowWord(ModuleCompiler *m, StackValue *sv, sljit_s32 *op,
                             sljit_sw *opw)
     {
@@ -141,8 +143,8 @@ namespace EwaVM
       }
     }
 
-    int ewa_EmitStoreStackValue(ModuleCompiler *m, StackValue *sv, int memreg,
-                                  int offset)
+    int EmitStoreStackValue(ModuleCompiler *m, StackValue *sv, int memreg,
+                            int offset)
     {
       if (sv->jit_type == SVT_GENERAL)
       {
@@ -280,29 +282,29 @@ namespace EwaVM
       return 0;
     }
     // store value into [S0+IMM]
-    int ewa_EmitSaveStack(ModuleCompiler *m, StackValue *sv)
+    int EmitSaveStack(ModuleCompiler *m, StackValue *sv)
     {
       if (sv->val.op == SLJIT_MEM1(SLJIT_S0) && sv->val.opw == sv->frame_offset)
       {
         return 1;
       }
-      ewa_EmitStoreStackValue(m, sv, SLJIT_MEM1(SLJIT_S0), sv->frame_offset);
+      EmitStoreStackValue(m, sv, SLJIT_MEM1(SLJIT_S0), sv->frame_offset);
       sv->val.op = SLJIT_MEM1(SLJIT_S0);
       sv->val.opw = sv->frame_offset;
       sv->jit_type = SVT_GENERAL;
       return 1;
     }
 
-    int ewa_EmitSaveStackAll(ModuleCompiler *m)
+    int EmitSaveStackAll(ModuleCompiler *m)
     {
       int i;
       for (i = 0; i <= m->sp; i++)
       {
-        ewa_EmitSaveStack(m, &m->stack[i]);
+        EmitSaveStack(m, &m->stack[i]);
       }
     }
 
-    int ewa_EmitLoadReg(ModuleCompiler *m, StackValue *sv, int reg)
+    int EmitLoadReg(ModuleCompiler *m, StackValue *sv, int reg)
     {
 
       if (sv->jit_type == SVT_GENERAL)
@@ -370,7 +372,7 @@ namespace EwaVM
       }
     }
 
-    inline size_t get_funcarr_offset(ModuleCompiler *m)
+    size_t get_funcarr_offset(ModuleCompiler *m)
     {
       return offsetof(RuntimeContext, funcentries);
     }
@@ -420,7 +422,7 @@ namespace EwaVM
           sv->val.opw >= m->first_stackvalue_offset)
       {
         // value are on stack, we need save it otherwhere.
-        ewa_EmitStackValueLoadReg(m, sv);
+        EmitStackValueLoadReg(m, sv);
       }
       m->sp -= 3;
       stackvalue_PushStackValueLike(m, &m->stack[m->sp + 2]);
@@ -430,23 +432,23 @@ namespace EwaVM
       if (sv->jit_type == SVT_GENERAL && sv->val.op == SLJIT_MEM1(SLJIT_S0) &&
           sv->val.opw >= m->first_stackvalue_offset)
       {
-        ewa_EmitSaveStack(m, sv);
+        EmitSaveStack(m, sv);
       }
       sv = &m->stack[m->sp];
       if (sv->jit_type == SVT_GENERAL && sv->val.op == SLJIT_MEM1(SLJIT_S0) &&
           sv->val.opw >= m->first_stackvalue_offset)
       {
-        ewa_EmitSaveStack(m, sv);
+        EmitSaveStack(m, sv);
       }
     }
-    int ewa_EmitCallFunc(ModuleCompiler *m, Type *type, sljit_s32 memreg,
-                           sljit_sw offset)
+    int EmitCallFunc(ModuleCompiler *m, Type *type, sljit_s32 memreg,
+                     sljit_sw offset)
     {
       StackValue *sv, sv2;
       uint32_t a, b, len, func_frame_offset;
       // Caution: Do not use scratch register before sljit_emit_icall to avoid overwrite [memreg,offset]
       // XXX: Maybe we need use RS_RESERVED to avoid unexpected overwrite.
-      ewa_EmitSaveStackAll(m);
+      EmitSaveStackAll(m);
       if ((memreg & (SLJIT_MEM - 1)) == SLJIT_R0)
       {
         sljit_emit_op1(m->jitc, SLJIT_MOV, SLJIT_R2, 0, memreg, offset);
@@ -483,7 +485,7 @@ namespace EwaVM
           sv = m->stack + m->sp;
           for (a = 0; a < len; a++)
           {
-            ewa_EmitSaveStack(m, sv);
+            EmitSaveStack(m, sv);
             sv--;
           }
           // move sp back
@@ -520,7 +522,7 @@ namespace EwaVM
           // reload memory base
           uint32_t tr;
           StackValue *sv;
-          tr = ewa_GetFreeReg(m, RT_BASE, 0);
+          tr = GetFreeReg(m, RT_BASE, 0);
           sljit_emit_op1(m->jitc, SLJIT_MOV, tr, 0, SLJIT_IMM, (sljit_uw)&mem0->bytes);
           sv = dynarr_get(m->locals, StackValue, m->mem_base_local);
           sljit_emit_op1(m->jitc, SLJIT_MOV, sv->val.op, sv->val.opw, SLJIT_MEM1(tr), 0);
@@ -528,7 +530,7 @@ namespace EwaVM
       }
     }
 
-    int ewa_EmitFuncReturn(ModuleCompiler *m)
+    int EmitFuncReturn(ModuleCompiler *m)
     {
       int idx, len, off;
       StackValue *sv;
@@ -539,12 +541,12 @@ namespace EwaVM
         sv = &m->stack[m->sp - len + idx + 1];
         if (gConfig.stack_flags & STACK_FLAGS_AUTO_ALIGN)
         {
-          ewa_EmitStoreStackValue(m, sv, SLJIT_MEM1(SLJIT_S0),
-                                    stackvalue_GetAlignedOffset(sv, off, (uint32_t *)&off));
+          EmitStoreStackValue(m, sv, SLJIT_MEM1(SLJIT_S0),
+                              stackvalue_GetAlignedOffset(sv, off, (uint32_t *)&off));
         }
         else
         {
-          ewa_EmitStoreStackValue(m, sv, SLJIT_MEM1(SLJIT_S0), off);
+          EmitStoreStackValue(m, sv, SLJIT_MEM1(SLJIT_S0), off);
           off += stackvalue_GetSizeAndAlign(sv, NULL);
         }
       }
@@ -568,7 +570,7 @@ namespace EwaVM
     }
 
     // get free register. check up to upstack.
-    sljit_s32 ewa_GetFreeReg(ModuleCompiler *m, sljit_s32 regtype, int upstack)
+    sljit_s32 GetFreeReg(ModuleCompiler *m, sljit_s32 regtype, int upstack)
     {
       int i;
       sljit_s32 fr;
@@ -612,7 +614,7 @@ namespace EwaVM
             }
           }
           fr = stackvalue_AnyRegUsedBySvalue(sv);
-          ewa_EmitSaveStack(m, sv);
+          EmitSaveStack(m, sv);
           return fr;
         }
         else
@@ -631,7 +633,7 @@ namespace EwaVM
             }
           }
           fr = stackvalue_AnyRegUsedBySvalue(sv);
-          ewa_EmitSaveStack(m, sv);
+          EmitSaveStack(m, sv);
           return fr;
         }
       }
@@ -651,25 +653,25 @@ namespace EwaVM
           }
         }
         fr = stackvalue_AnyRegUsedBySvalue(sv);
-        ewa_EmitSaveStack(m, sv);
+        EmitSaveStack(m, sv);
         return fr;
       }
     }
 
-    sljit_s32 ewa_GetFreeRegExcept(ModuleCompiler *m, sljit_s32 regtype,
-                                     sljit_s32 except, int upstack)
+    sljit_s32 GetFreeRegExcept(ModuleCompiler *m, sljit_s32 regtype,
+                               sljit_s32 except, int upstack)
     {
       sljit_s32 r1;
       if (regtype == RT_FLOAT)
       {
         if (m->float_registers_status[except - SLJIT_R0] & RS_RESERVED)
         {
-          return ewa_GetFreeReg(m, regtype, upstack);
+          return GetFreeReg(m, regtype, upstack);
         }
         else
         {
           m->float_registers_status[except - SLJIT_R0] |= RS_RESERVED;
-          r1 = ewa_GetFreeReg(m, regtype, upstack);
+          r1 = GetFreeReg(m, regtype, upstack);
           m->float_registers_status[except - SLJIT_R0] &= ~RS_RESERVED;
           return r1;
         }
@@ -678,12 +680,12 @@ namespace EwaVM
       {
         if (m->registers_status[except - SLJIT_R0] & RS_RESERVED)
         {
-          return ewa_GetFreeReg(m, regtype, upstack);
+          return GetFreeReg(m, regtype, upstack);
         }
         else
         {
           m->registers_status[except - SLJIT_R0] |= RS_RESERVED;
-          r1 = ewa_GetFreeReg(m, regtype, upstack);
+          r1 = GetFreeReg(m, regtype, upstack);
           m->registers_status[except - SLJIT_R0] &= ~RS_RESERVED;
           return r1;
         }
@@ -691,7 +693,7 @@ namespace EwaVM
     }
 
     // load stack value into reg
-    void ewa_EmitStackValueLoadReg(ModuleCompiler *m, StackValue *sv)
+    void EmitStackValueLoadReg(ModuleCompiler *m, StackValue *sv)
     {
       sljit_s32 r1, r2;
       if (m->target_ptr_size == 32 && sv->wasm_type == WVT_I64)
@@ -700,8 +702,8 @@ namespace EwaVM
         {
           return;
         }
-        r1 = ewa_GetFreeReg(m, RT_INTEGER, 0);
-        r2 = ewa_GetFreeRegExcept(m, RT_INTEGER, r1, 0);
+        r1 = GetFreeReg(m, RT_INTEGER, 0);
+        r2 = GetFreeRegExcept(m, RT_INTEGER, r1, 0);
         if (sv->jit_type == SVT_GENERAL)
         {
           sljit_emit_op1(m->jitc, SLJIT_MOV, r1, 0, sv->val.op, sv->val.opw);
@@ -725,21 +727,21 @@ namespace EwaVM
         }
         if (stackvalue_IsFloat(sv))
         {
-          r1 = ewa_GetFreeReg(m, RT_FLOAT, 0);
+          r1 = GetFreeReg(m, RT_FLOAT, 0);
         }
         else
         {
           // XXX: if sv is SLJIT_MEM1 type, we can reuse this register.
-          r1 = ewa_GetFreeReg(m, RT_INTEGER, 0);
+          r1 = GetFreeReg(m, RT_INTEGER, 0);
         }
-        ewa_EmitLoadReg(m, sv, r1);
+        EmitLoadReg(m, sv, r1);
         sv->val.op = r1;
         sv->val.opw = 0;
         sv->jit_type = SVT_GENERAL;
       }
     }
 
-    int ewa_EmitFuncEnter(ModuleCompiler *m)
+    int EmitFuncEnter(ModuleCompiler *m)
     {
       int nextSr = SLJIT_S1;
       int nextSfr = SLJIT_FS0;
@@ -936,7 +938,7 @@ namespace EwaVM
       memmove(&sv->val.opw, c, 4);
       sv->val.opw = *(sljit_s32 *)c;
       // sljit only allow load float from memory
-      ewa_EmitSaveStack(m, sv);
+      EmitSaveStack(m, sv);
     }
 
     void opgen_GenF64Const(ModuleCompiler *m, uint8_t *c)
@@ -954,7 +956,7 @@ namespace EwaVM
         memmove(&sv->val.opw, c, 8);
       }
       // sljit only allow load float from memory
-      ewa_EmitSaveStack(m, sv);
+      EmitSaveStack(m, sv);
     }
     void opgen_GenRefConst(ModuleCompiler *m, void *c)
     {

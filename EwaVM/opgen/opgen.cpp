@@ -335,7 +335,7 @@ namespace EwaVM
       m->jitc->verbose = stdout;
 #endif
 
-      ewa_EmitFuncEnter(m);
+      EmitFuncEnter(m);
 
       m->blocks = NULL;
       dynarr_init(&m->blocks, sizeof(Block));
@@ -364,7 +364,7 @@ namespace EwaVM
         if (m->sp >= 0 && m->stack[m->sp].jit_type == SVT_CMP &&
             opcode != WASMOPC_if && opcode != WASMOPC_br_if && opcode != WASMOPC_i32_eqz)
         {
-          ewa_EmitStackValueLoadReg(m, &m->stack[m->sp]);
+          EmitStackValueLoadReg(m, &m->stack[m->sp]);
         }
 
         if (opcode >= 0 && opcode <= 0x1b)

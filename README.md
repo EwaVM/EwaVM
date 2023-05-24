@@ -10,6 +10,8 @@ GitHub: https://github.com/EwaVM/EwaVM
 
 Gitee: https://gitee.com/ewa-vm/EwaVM
 
+开源许可证：Apache 2.0 (商业友好!)
+
 ## 特点
 
 - 完全支持WebAssembly的字节码特性
@@ -37,6 +39,7 @@ Gitee: https://gitee.com/ewa-vm/EwaVM
 ## TODO
 - 提供命令行 (CLI)环境
 - 提供更多例程和语言绑定
+- 添加WASI支持和SIMD指令加速
 
 ## 致谢
 

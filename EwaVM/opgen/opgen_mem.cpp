@@ -20,11 +20,11 @@ namespace EwaVM
       {
         if (stack[i].val.op == sv->val.op && stack[i].val.opw == sv->val.opw)
         {
-          ewa_EmitSaveStack(m, &stack[i]);
+          EmitSaveStack(m, &stack[i]);
         }
       }
       sv2 = &stack[m->sp];
-      ewa_EmitStoreStackValue(m, sv2, sv->val.op, sv->val.opw);
+      EmitStoreStackValue(m, sv2, sv->val.op, sv->val.opw);
       m->sp--;
     }
 
@@ -34,32 +34,32 @@ namespace EwaVM
       StackValue *stack = m->stack;
       sv = dynarr_get(m->locals, StackValue, idx);
       sv2 = &stack[m->sp];
-      ewa_EmitStoreStackValue(m, sv2, sv->val.op, sv->val.opw);
+      EmitStoreStackValue(m, sv2, sv->val.op, sv->val.opw);
     }
 
     void opgen_GenGlobalGet(ModuleCompiler *m, uint32_t idx)
     {
       int32_t a;
       StackValue *sv;
-      a = ewa_GetFreeReg(m, RT_BASE, 0);
+      a = GetFreeReg(m, RT_BASE, 0);
       sv = dynarr_get(m->globals, StackValue, idx);
       sljit_emit_op1(m->jitc, SLJIT_MOV, a, 0, SLJIT_IMM, sv->val.opw);
       sv = stackvalue_PushStackValueLike(m, dynarr_get(m->globals, StackValue, idx));
       sv->val.op = SLJIT_MEM1(a);
       sv->val.opw = 0;
       sv->jit_type = SVT_GENERAL;
-      ewa_EmitStackValueLoadReg(m, sv);
+      EmitStackValueLoadReg(m, sv);
     }
 
     void opgen_GenGlobalSet(ModuleCompiler *m, uint32_t idx)
     {
       int32_t a;
       StackValue *sv, *sv2;
-      a = ewa_GetFreeReg(m, RT_BASE, 0);
+      a = GetFreeReg(m, RT_BASE, 0);
       sv = dynarr_get(m->globals, StackValue, idx);
       sljit_emit_op1(m->jitc, SLJIT_MOV, a, 0, SLJIT_IMM, sv->val.opw);
       sv2 = &m->stack[m->sp];
-      ewa_EmitStoreStackValue(m, sv2, SLJIT_MEM1(a), 0);
+      EmitStoreStackValue(m, sv2, SLJIT_MEM1(a), 0);
       m->sp--;
     }
 
@@ -92,7 +92,7 @@ namespace EwaVM
         sv->wasm_type = WVT_I32;
       }
 
-      a = ewa_GetFreeReg(m, RT_BASE, 1);
+      a = GetFreeReg(m, RT_BASE, 1);
       sljit_emit_op2(m->jitc, SLJIT_SHL, a, 0, sv->val.op, sv->val.opw, SLJIT_IMM,
                      sizeof(void *) == 4 ? 2 : 3);
       if (tabidx == 0)
@@ -102,7 +102,7 @@ namespace EwaVM
       }
       else
       {
-        b = ewa_GetFreeRegExcept(m, RT_BASE, a, 1);
+        b = GetFreeRegExcept(m, RT_BASE, a, 1);
         Table *tab = *dynarr_get(m->context->tables, Table *, tabidx);
         sljit_emit_op1(m->jitc, SLJIT_MOV, b, 0, SLJIT_IMM, (sljit_uw)&tab->entries);
         sljit_emit_op1(m->jitc, SLJIT_MOV, b, 0, SLJIT_MEM1(b), 0);
@@ -120,7 +120,7 @@ namespace EwaVM
       int a;
       StackValue *sv;
       opgen_GenBaseAddressRegForTable(m, idx);
-      a = ewa_GetFreeReg(m, RT_BASE, 1);
+      a = GetFreeReg(m, RT_BASE, 1);
       sv = m->stack + m->sp;
       sljit_emit_op1(m->jitc, SLJIT_MOV, a, 0, SLJIT_MEM1(sv->val.op), 0);
       sv->wasm_type = WVT_REF;
@@ -138,7 +138,7 @@ namespace EwaVM
       a = m->stack[m->sp].val.op;
       m->sp--;
       sv = &m->stack[m->sp];
-      ewa_EmitStoreStackValue(m, sv, SLJIT_MEM1(a), 0);
+      EmitStoreStackValue(m, sv, SLJIT_MEM1(a), 0);
       m->sp--;
     }
 
@@ -146,7 +146,7 @@ namespace EwaVM
     {
       int32_t a;
       StackValue *sv;
-      a = ewa_GetFreeReg(m, RT_INTEGER, 0);
+      a = GetFreeReg(m, RT_INTEGER, 0);
       sljit_emit_op1(m->jitc, SLJIT_MOV, a, 0, SLJIT_IMM, (sljit_uw)(&(*dynarr_get(m->context->memories, Memory *, index))->pages));
       sv = stackvalue_Push(m, WVT_I32);
       sv->jit_type = SVT_GENERAL;
@@ -157,7 +157,7 @@ namespace EwaVM
     {
       opgen_GenI32Const(m, index);
       opgen_GenRefConst(m, m->context);
-      ewa_EmitCallFunc(m, &func_type_i32_i32_ref_ret_i32, SLJIT_IMM,
+      EmitCallFunc(m, &func_type_i32_i32_ref_ret_i32, SLJIT_IMM,
                          (sljit_sw)&insn_memorygrow);
     }
     // a:memory access base register, can be result register. result StackValue will
@@ -165,7 +165,7 @@ namespace EwaVM
     void opgen_GenI32Load(ModuleCompiler *m, int32_t opcode, int offset)
     {
       StackValue *sv = m->stack + m->sp;
-      int a = ewa_GetFreeReg(m, RT_INTEGER, 1);
+      int a = GetFreeReg(m, RT_INTEGER, 1);
       switch (opcode)
       {
       case 0x28: // i32.load32
@@ -203,18 +203,18 @@ namespace EwaVM
           sv = stackvalue_Push(m, WVT_I64);
           sv->val.op = SLJIT_MEM1(a);
           sv->val.opw = offset;
-          ewa_EmitStackValueLoadReg(m, sv);
+          EmitStackValueLoadReg(m, sv);
           return;
         }
         else
         {
-          a = ewa_GetFreeReg(m, RT_INTEGER, 1);
-          b = ewa_GetFreeRegExcept(m, RT_INTEGER, a, 1);
+          a = GetFreeReg(m, RT_INTEGER, 1);
+          b = GetFreeRegExcept(m, RT_INTEGER, a, 1);
         }
       }
       else
       {
-        a = ewa_GetFreeReg(m, RT_INTEGER, 1);
+        a = GetFreeReg(m, RT_INTEGER, 1);
       }
       sv = m->stack + m->sp;
       switch (opcode)
@@ -268,14 +268,14 @@ namespace EwaVM
         sv->jit_type = SVT_GENERAL;
         sv->val.op = SLJIT_MEM1(a);
         sv->val.opw = offset;
-        ewa_EmitStackValueLoadReg(m, sv);
+        EmitStackValueLoadReg(m, sv);
         break;
       case 0x2b: // f64.load64
         sv = stackvalue_Push(m, WVT_F64);
         sv->jit_type = SVT_GENERAL;
         sv->val.op = SLJIT_MEM1(a);
         sv->val.opw = offset;
-        ewa_EmitStackValueLoadReg(m, sv);
+        EmitStackValueLoadReg(m, sv);
         break;
       }
     }
@@ -292,7 +292,7 @@ namespace EwaVM
       if ((*dynarr_get(m->context->memories, Memory *, midx))->bytes == NULL)
       {
         // raw memory
-        ewa_EmitStackValueLoadReg(m, sv2);
+        EmitStackValueLoadReg(m, sv2);
         return;
       }
 
@@ -320,12 +320,12 @@ namespace EwaVM
       {
         sv = dynarr_get(m->locals, StackValue, m->mem_base_local); // memory base
         // here we don't need reserve top stack value
-        a = ewa_GetFreeReg(m, RT_BASE, 1);
+        a = GetFreeReg(m, RT_BASE, 1);
       }
       else
       {
         Memory *mem = *dynarr_get(m->context->memories, Memory *, midx);
-        a = ewa_GetFreeReg(m, RT_BASE, 0);
+        a = GetFreeReg(m, RT_BASE, 0);
         sljit_emit_op1(m->jitc, SLJIT_MOV, a, 0, SLJIT_IMM, (sljit_uw)&mem->bytes);
         sljit_emit_op1(m->jitc, SLJIT_MOV, a, 0, SLJIT_MEM1(a), 0);
         sv = stackvalue_Push(m, WVT_REF);
@@ -393,14 +393,14 @@ namespace EwaVM
       case 0x37: // i64.store
       case 0x38: // f32.store
       case 0x39: // f64.store
-        ewa_EmitStoreStackValue(m, sv, SLJIT_MEM1(a), offset);
+        EmitStoreStackValue(m, sv, SLJIT_MEM1(a), offset);
         break;
       case 0x3a: // i32.store8
       case 0x3c: // i64.store8
         if (m->target_ptr_size == 32 && sv->wasm_type == WVT_I64)
         {
           // XXX: optimize?
-          ewa_EmitSaveStack(m, sv);
+          EmitSaveStack(m, sv);
         }
         sljit_emit_op1(m->jitc, SLJIT_MOV_U8, SLJIT_MEM1(a), offset, sv->val.op,
                        sv->val.opw);
@@ -409,7 +409,7 @@ namespace EwaVM
       case 0x3d: // i64.store16
         if (m->target_ptr_size == 32 && sv->wasm_type == WVT_I64)
         {
-          ewa_EmitSaveStack(m, sv);
+          EmitSaveStack(m, sv);
         }
         sljit_emit_op1(m->jitc, SLJIT_MOV_U16, SLJIT_MEM1(a), offset, sv->val.op,
                        sv->val.opw);
@@ -417,7 +417,7 @@ namespace EwaVM
       case 0x3e: // i64.store32
         if (m->target_ptr_size == 32 && sv->wasm_type == WVT_I64)
         {
-          ewa_EmitSaveStack(m, sv);
+          EmitSaveStack(m, sv);
         }
         sljit_emit_op1(m->jitc, SLJIT_MOV_U32, SLJIT_MEM1(a), offset, sv->val.op,
                        sv->val.opw);
@@ -448,7 +448,7 @@ namespace EwaVM
         // XXX: we limit to use 32bit count now, which may be change in future
         opgen_GenNumOp(m, 0xa7); // i32.wrap_i64
       }
-      ewa_EmitCallFunc(m, &func_type_ref_ref_i32_void, SLJIT_IMM, (sljit_sw)&insn_ref_copy_bytes);
+      EmitCallFunc(m, &func_type_ref_ref_i32_void, SLJIT_IMM, (sljit_sw)&insn_ref_copy_bytes);
       // recover stack
       m->sp -= 3;
     }
@@ -472,7 +472,7 @@ namespace EwaVM
       sv2->jit_type = SVT_DUMMY;
       opgen_GenI32Const(m, (m->target_ptr_size == 32) ? 2 : 3);
       opgen_GenNumOp(m, 0x74);
-      ewa_EmitCallFunc(m, &func_type_ref_ref_i32_void, SLJIT_IMM, (sljit_sw)&insn_ref_copy_bytes);
+      EmitCallFunc(m, &func_type_ref_ref_i32_void, SLJIT_IMM, (sljit_sw)&insn_ref_copy_bytes);
       // recover stack
       m->sp -= 3;
     }
@@ -497,7 +497,7 @@ namespace EwaVM
       opgen_GenRefNull(m, 0);
       opgen_GenI32Const(m, 0);
 
-      ewa_EmitCallFunc(m, &func_type_memoryfill, SLJIT_IMM, (sljit_sw)&insn_memoryfill);
+      EmitCallFunc(m, &func_type_memoryfill, SLJIT_IMM, (sljit_sw)&insn_memoryfill);
       m->sp -= 3;
     }
 
@@ -522,7 +522,7 @@ namespace EwaVM
 
       opgen_GenI32Const(m, 1);
 
-      ewa_EmitCallFunc(m, &func_type_memoryfill, SLJIT_IMM, (sljit_sw)&insn_memoryfill);
+      EmitCallFunc(m, &func_type_memoryfill, SLJIT_IMM, (sljit_sw)&insn_memoryfill);
       m->sp -= 3;
     }
 

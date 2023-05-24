@@ -5,33 +5,33 @@ namespace EwaVM
   namespace OpGen
   {
 
-    static void opgen_GenUnreachable(ModuleCompiler *m)
+    void opgen_GenUnreachable(ModuleCompiler *m)
     {
       // just do nothing now.
     }
 
-    static void opgen_GenBlock(ModuleCompiler *m)
+    void opgen_GenBlock(ModuleCompiler *m)
     {
       Block *block;
       uint8_t *bytes = m->bytes;
-      ewa_EmitSaveStackAll(m);
+      EmitSaveStackAll(m);
       block = dynarr_push_type(&m->blocks, Block);
       block->block_type = 0x2;
       dynarr_init(&block->br_jump, sizeof(struct sljit_jump *));
       block->else_jump = NULL;
     }
 
-    static void opgen_GenLoop(ModuleCompiler *m)
+    void opgen_GenLoop(ModuleCompiler *m)
     {
       Block *block;
       uint8_t *bytes = m->bytes;
-      ewa_EmitSaveStackAll(m);
+      EmitSaveStackAll(m);
       block = dynarr_push_type(&m->blocks, Block);
       block->block_type = 0x3;
       block->br_label = sljit_emit_label(m->jitc);
     }
 
-    static void opgen_GenIf(ModuleCompiler *m)
+    void opgen_GenIf(ModuleCompiler *m)
     {
       Block *block;
       StackValue *sv;
@@ -41,7 +41,7 @@ namespace EwaVM
       // stack top will be remove soon. Don't save it here.
       for (int i = 0; i < m->sp; i++)
       {
-        ewa_EmitSaveStack(m, &m->stack[i]);
+        EmitSaveStack(m, &m->stack[i]);
       }
       block = dynarr_push_type(&m->blocks, Block);
       block->block_type = 0x4;
@@ -55,7 +55,7 @@ namespace EwaVM
       else
       {
         // sljit_emit_cmp always use machine word length, So load to register first.
-        ewa_EmitStackValueLoadReg(m, sv);
+        EmitStackValueLoadReg(m, sv);
         jump = sljit_emit_cmp(m->jitc, SLJIT_EQUAL, sv->val.op, sv->val.opw,
                               SLJIT_IMM, 0);
       }
@@ -63,10 +63,10 @@ namespace EwaVM
       m->sp--;
     }
 
-    static void opgen_GenElse(ModuleCompiler *m)
+    void opgen_GenElse(ModuleCompiler *m)
     {
       Block *block;
-      ewa_EmitSaveStackAll(m);
+      EmitSaveStackAll(m);
       block = dynarr_get(m->blocks, Block, m->blocks->len - 1);
       *dynarr_push_type(&block->br_jump, struct sljit_jump *) =
           sljit_emit_jump(m->jitc, SLJIT_JUMP);
@@ -74,14 +74,14 @@ namespace EwaVM
       block->else_jump = NULL;
     }
 
-    static void opgen_GenEnd(ModuleCompiler *m)
+    void opgen_GenEnd(ModuleCompiler *m)
     {
       struct sljit_jump *sj;
       Block *block = dynarr_pop_type(&m->blocks, Block);
       int a;
       if (block->block_type == 0x2 || block->block_type == 0x4)
       {
-        ewa_EmitSaveStackAll(m);
+        EmitSaveStackAll(m);
         // if block
         block->br_label = sljit_emit_label(m->jitc);
         for (a = 0; a < block->br_jump->len; a++)
@@ -98,11 +98,11 @@ namespace EwaVM
       else if (block->block_type == 0x00)
       {
         // function
-        // Check if there is already a redundant return instruction, if so, skip ewa_EmitFuncReturn.
+        // Check if there is already a redundant return instruction, if so, skip EmitFuncReturn.
         // XXX:May we need better way to avoid access m->bytes directly.
         if (m->bytes[m->pc - 2] != 0x0f)
         {
-          ewa_EmitFuncReturn(m);
+          EmitFuncReturn(m);
         }
         wa_assert(m->blocks->len == 0, "block stack not empty");
         m->eof = 1;
@@ -113,10 +113,10 @@ namespace EwaVM
       }
     }
 
-    static void opgen_GenBr(ModuleCompiler *m, int32_t depth)
+    void opgen_GenBr(ModuleCompiler *m, int32_t depth)
     {
       Block *block;
-      ewa_EmitSaveStackAll(m);
+      EmitSaveStackAll(m);
       block = dynarr_get(m->blocks, Block, m->blocks->len - 1 - depth);
       if (block->br_label != NULL)
       {
@@ -129,7 +129,7 @@ namespace EwaVM
       }
     }
 
-    static void opgen_GenBrIf(ModuleCompiler *m, int32_t depth)
+    void opgen_GenBrIf(ModuleCompiler *m, int32_t depth)
     {
       StackValue *sv;
       Block *block;
@@ -138,7 +138,7 @@ namespace EwaVM
       // stack top will be remove soon. Don't save it here.
       for (int i = 0; i < m->sp; i++)
       {
-        ewa_EmitSaveStack(m, &m->stack[i]);
+        EmitSaveStack(m, &m->stack[i]);
       }
       block = dynarr_get(m->blocks, Block, m->blocks->len - 1 - depth);
       if (sv->jit_type == SVT_CMP)
@@ -157,7 +157,7 @@ namespace EwaVM
       else if (sv->jit_type == SVT_GENERAL)
       {
         // sljit_emit_cmp always use machine word length, So load to register first.
-        ewa_EmitStackValueLoadReg(m, sv);
+        EmitStackValueLoadReg(m, sv);
         if (block->br_label != NULL)
         {
           sljit_set_label(sljit_emit_cmp(m->jitc, SLJIT_NOT_EQUAL, sv->val.op,
@@ -177,7 +177,7 @@ namespace EwaVM
       m->sp--;
     }
 
-    static void opgen_GenBrTable(ModuleCompiler *m)
+    void opgen_GenBrTable(ModuleCompiler *m)
     {
       int32_t depth;
       int a, count;
@@ -187,9 +187,9 @@ namespace EwaVM
       count = m->br_table->len - 1;
       for (int i = 0; i < m->sp; i++)
       {
-        ewa_EmitSaveStack(m, &m->stack[i]);
+        EmitSaveStack(m, &m->stack[i]);
       }
-      ewa_EmitStackValueLoadReg(m, sv);
+      EmitStackValueLoadReg(m, sv);
       for (a = 0; a < count; a++)
       {
         depth = *dynarr_get(m->br_table, uint32_t, a);
@@ -230,14 +230,14 @@ namespace EwaVM
       m->sp--;
     }
 
-    static void opgen_GenReturn(ModuleCompiler *m)
+    void opgen_GenReturn(ModuleCompiler *m)
     {
-      ewa_EmitFuncReturn(m);
+      EmitFuncReturn(m);
       // pop all value in stack, to avoid unnecessary value saved.
       m->sp = -1;
     }
 
-    static void opgen_GenCall(ModuleCompiler *m, int32_t fidx)
+    void opgen_GenCall(ModuleCompiler *m, int32_t fidx)
     {
       WasmFunction *fn;
       int a;
@@ -246,15 +246,15 @@ namespace EwaVM
       fn = dynarr_get(m->functions, WasmFunction, fidx);
       if (!ewa_CheckAndGenStubFunction(m, fn->func_ptr))
       {
-        a = ewa_GetFreeReg(m, RT_INTEGER, 0);
+        a = GetFreeReg(m, RT_INTEGER, 0);
         sljit_emit_op1(m->jitc, SLJIT_MOV, a, 0, SLJIT_IMM, (sljit_uw)(m->context->funcentries + fidx));
         type = dynarr_get(m->types, Type, fn->tidx);
-        ewa_EmitCallFunc(m, type, SLJIT_MEM1(a), 0);
+        EmitCallFunc(m, type, SLJIT_MEM1(a), 0);
       }
     }
 
-    static void opgen_GenCallIndirect(ModuleCompiler *m, int32_t typeidx,
-                                      int32_t tableidx)
+    void opgen_GenCallIndirect(ModuleCompiler *m, int32_t typeidx,
+                               int32_t tableidx)
     {
       Type *type;
       int a = 0;
@@ -262,18 +262,18 @@ namespace EwaVM
       opgen_GenBaseAddressRegForTable(m, tableidx);
       a = m->stack[m->sp].val.op;
       m->sp--;
-      ewa_EmitCallFunc(m, type, SLJIT_MEM1(a), 0);
+      EmitCallFunc(m, type, SLJIT_MEM1(a), 0);
     }
 
-    static void opgen_GenDrop(ModuleCompiler *m) { m->sp--; }
+    void opgen_GenDrop(ModuleCompiler *m) { m->sp--; }
 
-    static void opgen_GenSelect(ModuleCompiler *m)
+    void opgen_GenSelect(ModuleCompiler *m)
     {
       // must save to stack.
       StackValue *sv, *sv2;
       StackValue *stack = m->stack;
       struct sljit_jump *jump;
-      ewa_EmitSaveStack(m, &stack[m->sp - 2]);
+      EmitSaveStack(m, &stack[m->sp - 2]);
       sv = &stack[m->sp--];
 
       if (sv->jit_type == SVT_CMP)
@@ -293,11 +293,11 @@ namespace EwaVM
       sv = &stack[m->sp];
       sv->val = sv2->val;
       sv->jit_type = sv2->jit_type;
-      ewa_EmitSaveStack(m, sv);
+      EmitSaveStack(m, sv);
       sljit_set_label(jump, sljit_emit_label(m->jitc));
     }
 
-    static char *opgen_GenCtlOp(ModuleCompiler *m, int opcode)
+    char *opgen_GenCtlOp(ModuleCompiler *m, int opcode)
     {
       uint8_t *bytes = m->bytes;
       int32_t blktype, depth, count, *i32p, fidx, tidx, tabidx;

@@ -37,7 +37,7 @@ namespace EwaVM
     {
       int32_t a;
       StackValue *sv;
-      a = ewa_GetFreeReg(m, RT_INTEGER, 0);
+      a = GetFreeReg(m, RT_INTEGER, 0);
       sljit_emit_op1(m->jitc, SLJIT_MOV, a, 0, SLJIT_IMM, (sljit_uw)(m->context->funcentries + fidx));
       sv = stackvalue_Push(m, WVT_FUNC);
       sv->jit_type = SVT_GENERAL;
@@ -49,7 +49,7 @@ namespace EwaVM
     {
       int32_t r;
       StackValue *sv = NULL;
-      r = ewa_GetFreeReg(m, RT_INTEGER, 0);
+      r = GetFreeReg(m, RT_INTEGER, 0);
       Table *tab = *dynarr_get(m->context->tables, Table *, tabidx);
       sljit_emit_op1(m->jitc, SLJIT_MOV, r, 0, SLJIT_IMM, (sljit_sw)&tab->size);
       sv = stackvalue_Push(m, WVT_I32);

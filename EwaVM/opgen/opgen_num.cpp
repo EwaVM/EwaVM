@@ -34,7 +34,7 @@ namespace EwaVM
         sv = m->stack + m->sp;
         if (m->target_ptr_size == 32)
         {
-          ewa_EmitCallFunc(m, &func_type_i64_ret_i32, SLJIT_IMM,
+          EmitCallFunc(m, &func_type_i64_ret_i32, SLJIT_IMM,
                              (sljit_sw)&insn_i64eqz);
         }
         else
@@ -118,43 +118,43 @@ namespace EwaVM
           switch (opcode)
           {
           case 0x51: // i64.eq
-            ewa_EmitCallFunc(m, &func_type_i64_i64_ret_i32, SLJIT_IMM,
+            EmitCallFunc(m, &func_type_i64_i64_ret_i32, SLJIT_IMM,
                                (sljit_sw)&insn_i64eq);
             break;
           case 0x52: // i64.ne
-            ewa_EmitCallFunc(m, &func_type_i64_i64_ret_i32, SLJIT_IMM,
+            EmitCallFunc(m, &func_type_i64_i64_ret_i32, SLJIT_IMM,
                                (sljit_sw)&insn_i64ne);
             break;
           case 0x53: // i64.lt_s
-            ewa_EmitCallFunc(m, &func_type_i64_i64_ret_i32, SLJIT_IMM,
+            EmitCallFunc(m, &func_type_i64_i64_ret_i32, SLJIT_IMM,
                                (sljit_sw)&insn_i64lts);
             break;
           case 0x54: // i64.lt_u
-            ewa_EmitCallFunc(m, &func_type_i64_i64_ret_i32, SLJIT_IMM,
+            EmitCallFunc(m, &func_type_i64_i64_ret_i32, SLJIT_IMM,
                                (sljit_sw)&insn_i64ltu);
             break;
           case 0x55: // i64.gt_s
-            ewa_EmitCallFunc(m, &func_type_i64_i64_ret_i32, SLJIT_IMM,
+            EmitCallFunc(m, &func_type_i64_i64_ret_i32, SLJIT_IMM,
                                (sljit_sw)&insn_i64gts);
             break;
           case 0x56: // i64.gt_u
-            ewa_EmitCallFunc(m, &func_type_i64_i64_ret_i32, SLJIT_IMM,
+            EmitCallFunc(m, &func_type_i64_i64_ret_i32, SLJIT_IMM,
                                (sljit_sw)&insn_i64gtu);
             break;
           case 0x57: // i64.le_s
-            ewa_EmitCallFunc(m, &func_type_i64_i64_ret_i32, SLJIT_IMM,
+            EmitCallFunc(m, &func_type_i64_i64_ret_i32, SLJIT_IMM,
                                (sljit_sw)&insn_i64les);
             break;
           case 0x58: // i64.le_u
-            ewa_EmitCallFunc(m, &func_type_i64_i64_ret_i32, SLJIT_IMM,
+            EmitCallFunc(m, &func_type_i64_i64_ret_i32, SLJIT_IMM,
                                (sljit_sw)&insn_i64leu);
             break;
           case 0x59: // i64.ge_s
-            ewa_EmitCallFunc(m, &func_type_i64_i64_ret_i32, SLJIT_IMM,
+            EmitCallFunc(m, &func_type_i64_i64_ret_i32, SLJIT_IMM,
                                (sljit_sw)&insn_i64ges);
             break;
           case 0x5a: // i64.ge_u
-            ewa_EmitCallFunc(m, &func_type_i64_i64_ret_i32, SLJIT_IMM,
+            EmitCallFunc(m, &func_type_i64_i64_ret_i32, SLJIT_IMM,
                                (sljit_sw)&insn_i64geu);
             break;
           }
@@ -226,7 +226,7 @@ namespace EwaVM
       case 0x5b ... 0x60:
         sv2 = m->stack + m->sp;
         sv = m->stack + m->sp - 1;
-        b = ewa_GetFreeReg(m, RT_INTEGER, 2);
+        b = GetFreeReg(m, RT_INTEGER, 2);
         jump = sljit_emit_fcmp(m->jitc, SLJIT_32 | SLJIT_UNORDERED, sv->val.op,
                                sv->val.opw, sv2->val.op, sv2->val.opw);
         switch (opcode)
@@ -278,7 +278,7 @@ namespace EwaVM
       case 0x61 ... 0x66:
         sv2 = &m->stack[m->sp];
         sv = &m->stack[m->sp] - 1;
-        b = ewa_GetFreeReg(m, RT_INTEGER, 2);
+        b = GetFreeReg(m, RT_INTEGER, 2);
         jump = sljit_emit_fcmp(m->jitc, SLJIT_UNORDERED, sv->val.op, sv->val.opw,
                                sv2->val.op, sv2->val.opw);
         switch (opcode)
@@ -346,34 +346,34 @@ namespace EwaVM
       //
       // unary i32
       case 0x67: // i32.clz
-        ewa_EmitCallFunc(m, &func_type_i32_ret_i32, SLJIT_IMM,
+        EmitCallFunc(m, &func_type_i32_ret_i32, SLJIT_IMM,
                            (sljit_sw)&insn_i32clz);
         break;
       case 0x68: // i32.ctz
-        ewa_EmitCallFunc(m, &func_type_i32_ret_i32, SLJIT_IMM,
+        EmitCallFunc(m, &func_type_i32_ret_i32, SLJIT_IMM,
                            (sljit_sw)&insn_i32ctz);
         break;
       case 0x69: // i32.popcount
-        ewa_EmitCallFunc(m, &func_type_i32_ret_i32, SLJIT_IMM,
+        EmitCallFunc(m, &func_type_i32_ret_i32, SLJIT_IMM,
                            (sljit_sw)&insn_i32popcount);
         break;
       case 0x79: // i64.clz
-        ewa_EmitCallFunc(m, &func_type_i64_ret_i64, SLJIT_IMM,
+        EmitCallFunc(m, &func_type_i64_ret_i64, SLJIT_IMM,
                            (sljit_sw)&insn_i64clz);
         break;
       case 0x7a: // i64.ctz
-        ewa_EmitCallFunc(m, &func_type_i64_ret_i64, SLJIT_IMM,
+        EmitCallFunc(m, &func_type_i64_ret_i64, SLJIT_IMM,
                            (sljit_sw)&insn_i64ctz);
         break;
       case 0x7b: // i64.popcount
-        ewa_EmitCallFunc(m, &func_type_i64_ret_i64, SLJIT_IMM,
+        EmitCallFunc(m, &func_type_i64_ret_i64, SLJIT_IMM,
                            (sljit_sw)&insn_i64popcount);
         break;
 
       // unary f32
       case 0x8b: // f32.abs
         sv = &stack[m->sp];
-        a = ewa_GetFreeReg(m, RT_FLOAT, 1); // free register
+        a = GetFreeReg(m, RT_FLOAT, 1); // free register
         sljit_emit_fop1(m->jitc, SLJIT_ABS_F32, a, 0, sv->val.op, sv->val.opw);
         sv->jit_type = SVT_GENERAL;
         sv->val.op = a;
@@ -381,7 +381,7 @@ namespace EwaVM
         break;
       case 0x8c: // f32.neg
         sv = &stack[m->sp];
-        a = ewa_GetFreeReg(m, RT_FLOAT, 1); // free register
+        a = GetFreeReg(m, RT_FLOAT, 1); // free register
         sljit_emit_fop1(m->jitc, SLJIT_NEG_F32, a, 0, sv->val.op, sv->val.opw);
         sv->jit_type = SVT_GENERAL;
         sv->val.op = a;
@@ -389,30 +389,30 @@ namespace EwaVM
         break;
 
       case 0x8d: // f32.ceil
-        ewa_EmitCallFunc(m, &func_type_f32_ret_f32, SLJIT_IMM,
+        EmitCallFunc(m, &func_type_f32_ret_f32, SLJIT_IMM,
                            (sljit_sw)&insn_f32ceil);
         break;
       case 0x8e: // f32.floor
-        ewa_EmitCallFunc(m, &func_type_f32_ret_f32, SLJIT_IMM,
+        EmitCallFunc(m, &func_type_f32_ret_f32, SLJIT_IMM,
                            (sljit_sw)&insn_f32floor);
         break;
       case 0x8f: // f32.trunc
-        ewa_EmitCallFunc(m, &func_type_f32_ret_f32, SLJIT_IMM,
+        EmitCallFunc(m, &func_type_f32_ret_f32, SLJIT_IMM,
                            (sljit_sw)&insn_f32trunc);
         break;
       case 0x90: // f32.nearest
-        ewa_EmitCallFunc(m, &func_type_f32_ret_f32, SLJIT_IMM,
+        EmitCallFunc(m, &func_type_f32_ret_f32, SLJIT_IMM,
                            (sljit_sw)&insn_f32nearest);
         break;
       case 0x91: // f32.sqrt
-        ewa_EmitCallFunc(m, &func_type_f32_ret_f32, SLJIT_IMM,
+        EmitCallFunc(m, &func_type_f32_ret_f32, SLJIT_IMM,
                            (sljit_sw)&insn_f32sqrt);
         break;
 
       // unary f64
       case 0x99: // f64.abs
         sv = &stack[m->sp];
-        a = ewa_GetFreeReg(m, RT_FLOAT, 1); // free register
+        a = GetFreeReg(m, RT_FLOAT, 1); // free register
         sljit_emit_fop1(m->jitc, SLJIT_ABS_F64, a, 0, sv->val.op, sv->val.opw);
         sv = stackvalue_Push(m, WVT_F64);
         sv->jit_type = SVT_GENERAL;
@@ -421,7 +421,7 @@ namespace EwaVM
         break;
       case 0x9a: // f64.neg
         sv = &stack[m->sp];
-        a = ewa_GetFreeReg(m, RT_FLOAT, 1); // free register
+        a = GetFreeReg(m, RT_FLOAT, 1); // free register
         sljit_emit_fop1(m->jitc, SLJIT_NEG_F64, a, 0, sv->val.op, sv->val.opw);
         sv = stackvalue_Push(m, WVT_F64);
         sv->jit_type = SVT_GENERAL;
@@ -429,23 +429,23 @@ namespace EwaVM
         sv->val.opw = 0;
         break;
       case 0x9b: // f64.ceil
-        ewa_EmitCallFunc(m, &func_type_f64_ret_f64, SLJIT_IMM,
+        EmitCallFunc(m, &func_type_f64_ret_f64, SLJIT_IMM,
                            (sljit_sw)&insn_f64ceil);
         break;
       case 0x9c: // f64.floor
-        ewa_EmitCallFunc(m, &func_type_f64_ret_f64, SLJIT_IMM,
+        EmitCallFunc(m, &func_type_f64_ret_f64, SLJIT_IMM,
                            (sljit_sw)&insn_f64floor);
         break;
       case 0x9d: // f64.trunc
-        ewa_EmitCallFunc(m, &func_type_f64_ret_f64, SLJIT_IMM,
+        EmitCallFunc(m, &func_type_f64_ret_f64, SLJIT_IMM,
                            (sljit_sw)&insn_f64trunc);
         break;
       case 0x9e: // f64.nearest
-        ewa_EmitCallFunc(m, &func_type_f64_ret_f64, SLJIT_IMM,
+        EmitCallFunc(m, &func_type_f64_ret_f64, SLJIT_IMM,
                            (sljit_sw)&insn_f64nearest);
         break;
       case 0x9f: // f64.sqrt
-        ewa_EmitCallFunc(m, &func_type_f64_ret_f64, SLJIT_IMM,
+        EmitCallFunc(m, &func_type_f64_ret_f64, SLJIT_IMM,
                            (sljit_sw)&insn_f64sqrt);
         break;
 
@@ -455,7 +455,7 @@ namespace EwaVM
         {
           sv = &stack[m->sp - 1];
           sv2 = &stack[m->sp];
-          a = ewa_GetFreeReg(m, RT_INTEGER, 2);
+          a = GetFreeReg(m, RT_INTEGER, 2);
         }
         switch (opcode)
         {
@@ -479,18 +479,18 @@ namespace EwaVM
           {
             if (sv3 != NULL)
             {
-              ewa_EmitSaveStack(m, sv3);
+              EmitSaveStack(m, sv3);
             }
-            ewa_EmitLoadReg(m, sv, SLJIT_R0);
+            EmitLoadReg(m, sv, SLJIT_R0);
           }
           sv3 = stackvalue_FindSvalueUseReg(m, SLJIT_R1, RT_INTEGER, 0);
           if (sv3 != sv2)
           {
             if (sv3 != NULL)
             {
-              ewa_EmitSaveStack(m, sv3);
+              EmitSaveStack(m, sv3);
             }
-            ewa_EmitLoadReg(m, sv2, SLJIT_R1);
+            EmitLoadReg(m, sv2, SLJIT_R1);
           }
           a = SLJIT_R0;
           sljit_emit_op0(m->jitc, SLJIT_DIV_S32);
@@ -504,18 +504,18 @@ namespace EwaVM
           {
             if (sv3 != NULL)
             {
-              ewa_EmitSaveStack(m, sv3);
+              EmitSaveStack(m, sv3);
             }
-            ewa_EmitLoadReg(m, sv, SLJIT_R0);
+            EmitLoadReg(m, sv, SLJIT_R0);
           }
           sv3 = stackvalue_FindSvalueUseReg(m, SLJIT_R1, RT_INTEGER, 0);
           if (sv3 != sv2)
           {
             if (sv3 != NULL)
             {
-              ewa_EmitSaveStack(m, sv3);
+              EmitSaveStack(m, sv3);
             }
-            ewa_EmitLoadReg(m, sv2, SLJIT_R1);
+            EmitLoadReg(m, sv2, SLJIT_R1);
           }
           a = SLJIT_R0;
           sljit_emit_op0(m->jitc, SLJIT_DIV_U32);
@@ -529,18 +529,18 @@ namespace EwaVM
           {
             if (sv3 != NULL)
             {
-              ewa_EmitSaveStack(m, sv3);
+              EmitSaveStack(m, sv3);
             }
-            ewa_EmitLoadReg(m, sv, SLJIT_R0);
+            EmitLoadReg(m, sv, SLJIT_R0);
           }
           sv3 = stackvalue_FindSvalueUseReg(m, SLJIT_R1, RT_INTEGER, 0);
           if (sv3 != sv2)
           {
             if (sv3 != NULL)
             {
-              ewa_EmitSaveStack(m, sv3);
+              EmitSaveStack(m, sv3);
             }
-            ewa_EmitLoadReg(m, sv2, SLJIT_R1);
+            EmitLoadReg(m, sv2, SLJIT_R1);
           }
           a = SLJIT_R1;
           sljit_emit_op0(m->jitc, SLJIT_DIVMOD_S32);
@@ -554,18 +554,18 @@ namespace EwaVM
           {
             if (sv3 != NULL)
             {
-              ewa_EmitSaveStack(m, sv3);
+              EmitSaveStack(m, sv3);
             }
-            ewa_EmitLoadReg(m, sv, SLJIT_R0);
+            EmitLoadReg(m, sv, SLJIT_R0);
           }
           sv3 = stackvalue_FindSvalueUseReg(m, SLJIT_R1, RT_INTEGER, 0);
           if (sv3 != sv2)
           {
             if (sv3 != NULL)
             {
-              ewa_EmitSaveStack(m, sv3);
+              EmitSaveStack(m, sv3);
             }
-            ewa_EmitLoadReg(m, sv2, SLJIT_R1);
+            EmitLoadReg(m, sv2, SLJIT_R1);
           }
           a = SLJIT_R1;
           sljit_emit_op0(m->jitc, SLJIT_DIVMOD_U32);
@@ -596,11 +596,11 @@ namespace EwaVM
                          sv2->val.op, sv2->val.opw);
           break;
         case 0x77: // i32.rotl
-          ewa_EmitCallFunc(m, &func_type_i32_i32_ret_i32, SLJIT_IMM,
+          EmitCallFunc(m, &func_type_i32_i32_ret_i32, SLJIT_IMM,
                              (sljit_sw)&insn_i32rotl);
           break;
         case 0x78: // i32.rotr
-          ewa_EmitCallFunc(m, &func_type_i32_i32_ret_i32, SLJIT_IMM,
+          EmitCallFunc(m, &func_type_i32_i32_ret_i32, SLJIT_IMM,
                              (sljit_sw)&insn_i32rotr);
           break;
         }
@@ -622,7 +622,7 @@ namespace EwaVM
           {
             sv = &stack[m->sp - 1];
             sv2 = &stack[m->sp];
-            a = ewa_GetFreeReg(m, RT_INTEGER, 2);
+            a = GetFreeReg(m, RT_INTEGER, 2);
           }
           switch (opcode)
           {
@@ -646,18 +646,18 @@ namespace EwaVM
             {
               if (sv3 != NULL)
               {
-                ewa_EmitSaveStack(m, sv3);
+                EmitSaveStack(m, sv3);
               }
-              ewa_EmitLoadReg(m, sv, SLJIT_R0);
+              EmitLoadReg(m, sv, SLJIT_R0);
             }
             sv3 = stackvalue_FindSvalueUseReg(m, SLJIT_R1, RT_INTEGER, 0);
             if (sv3 != sv2)
             {
               if (sv3 != NULL)
               {
-                ewa_EmitSaveStack(m, sv3);
+                EmitSaveStack(m, sv3);
               }
-              ewa_EmitLoadReg(m, sv2, SLJIT_R1);
+              EmitLoadReg(m, sv2, SLJIT_R1);
             }
             a = SLJIT_R0;
             sljit_emit_op0(m->jitc, SLJIT_DIV_SW);
@@ -671,18 +671,18 @@ namespace EwaVM
             {
               if (sv3 != NULL)
               {
-                ewa_EmitSaveStack(m, sv3);
+                EmitSaveStack(m, sv3);
               }
-              ewa_EmitLoadReg(m, sv, SLJIT_R0);
+              EmitLoadReg(m, sv, SLJIT_R0);
             }
             sv3 = stackvalue_FindSvalueUseReg(m, SLJIT_R1, RT_INTEGER, 0);
             if (sv3 != sv2)
             {
               if (sv3 != NULL)
               {
-                ewa_EmitSaveStack(m, sv3);
+                EmitSaveStack(m, sv3);
               }
-              ewa_EmitLoadReg(m, sv2, SLJIT_R1);
+              EmitLoadReg(m, sv2, SLJIT_R1);
             }
             a = SLJIT_R0;
             sljit_emit_op0(m->jitc, SLJIT_DIV_UW);
@@ -696,18 +696,18 @@ namespace EwaVM
             {
               if (sv3 != NULL)
               {
-                ewa_EmitSaveStack(m, sv3);
+                EmitSaveStack(m, sv3);
               }
-              ewa_EmitLoadReg(m, sv, SLJIT_R0);
+              EmitLoadReg(m, sv, SLJIT_R0);
             }
             sv3 = stackvalue_FindSvalueUseReg(m, SLJIT_R1, RT_INTEGER, 0);
             if (sv3 != sv2)
             {
               if (sv3 != NULL)
               {
-                ewa_EmitSaveStack(m, sv3);
+                EmitSaveStack(m, sv3);
               }
-              ewa_EmitLoadReg(m, sv2, SLJIT_R1);
+              EmitLoadReg(m, sv2, SLJIT_R1);
             }
             a = SLJIT_R1;
             sljit_emit_op0(m->jitc, SLJIT_DIVMOD_SW);
@@ -721,18 +721,18 @@ namespace EwaVM
             {
               if (sv3 != NULL)
               {
-                ewa_EmitSaveStack(m, sv3);
+                EmitSaveStack(m, sv3);
               }
-              ewa_EmitLoadReg(m, sv, SLJIT_R0);
+              EmitLoadReg(m, sv, SLJIT_R0);
             }
             sv3 = stackvalue_FindSvalueUseReg(m, SLJIT_R1, RT_INTEGER, 0);
             if (sv3 != sv2)
             {
               if (sv3 != NULL)
               {
-                ewa_EmitSaveStack(m, sv3);
+                EmitSaveStack(m, sv3);
               }
-              ewa_EmitLoadReg(m, sv2, SLJIT_R1);
+              EmitLoadReg(m, sv2, SLJIT_R1);
             }
             a = SLJIT_R1;
             sljit_emit_op0(m->jitc, SLJIT_DIVMOD_UW);
@@ -763,11 +763,11 @@ namespace EwaVM
                            sv2->val.op, sv2->val.opw);
             break;
           case 0x89: // i64.rotl
-            ewa_EmitCallFunc(m, &func_type_i64_i64_ret_i64, SLJIT_IMM,
+            EmitCallFunc(m, &func_type_i64_i64_ret_i64, SLJIT_IMM,
                                (sljit_sw)&insn_i64rotl);
             break;
           case 0x8a: // i64.rotr
-            ewa_EmitCallFunc(m, &func_type_i64_i64_ret_i64, SLJIT_IMM,
+            EmitCallFunc(m, &func_type_i64_i64_ret_i64, SLJIT_IMM,
                                (sljit_sw)&insn_i64rotr);
             break;
           }
@@ -799,7 +799,7 @@ namespace EwaVM
             }
             else
             {
-              ewa_EmitStackValueLoadReg(m, sv);
+              EmitStackValueLoadReg(m, sv);
               a = sv->val.tworeg.opr1;
               b = sv->val.tworeg.opr2;
             }
@@ -830,7 +830,7 @@ namespace EwaVM
             }
             else
             {
-              ewa_EmitStackValueLoadReg(m, sv);
+              EmitStackValueLoadReg(m, sv);
               a = sv->val.tworeg.opr1;
               b = sv->val.tworeg.opr2;
             }
@@ -847,23 +847,23 @@ namespace EwaVM
             sv->val.tworeg.opr2 = b;
             break;
           case 0x7e: // i64.mul
-            ewa_EmitCallFunc(m, &func_type_i64_i64_ret_i64, SLJIT_IMM,
+            EmitCallFunc(m, &func_type_i64_i64_ret_i64, SLJIT_IMM,
                                (sljit_sw)&insn_i64mul);
             break;
           case 0x7f: // i64.div_s
-            ewa_EmitCallFunc(m, &func_type_i64_i64_ret_i64, SLJIT_IMM,
+            EmitCallFunc(m, &func_type_i64_i64_ret_i64, SLJIT_IMM,
                                (sljit_sw)&insn_i64divs);
             break;
           case 0x80: // i64.div_u
-            ewa_EmitCallFunc(m, &func_type_i64_i64_ret_i64, SLJIT_IMM,
+            EmitCallFunc(m, &func_type_i64_i64_ret_i64, SLJIT_IMM,
                                (sljit_sw)&insn_i64divu);
             break;
           case 0x81: // i64.rem_s
-            ewa_EmitCallFunc(m, &func_type_i64_i64_ret_i64, SLJIT_IMM,
+            EmitCallFunc(m, &func_type_i64_i64_ret_i64, SLJIT_IMM,
                                (sljit_sw)&insn_i64rems);
             break;
           case 0x82: // i64.rem_u
-            ewa_EmitCallFunc(m, &func_type_i64_i64_ret_i64, SLJIT_IMM,
+            EmitCallFunc(m, &func_type_i64_i64_ret_i64, SLJIT_IMM,
                                (sljit_sw)&insn_i64remu);
             break;
           case 0x83: // i64.and
@@ -881,7 +881,7 @@ namespace EwaVM
             }
             else
             {
-              ewa_EmitStackValueLoadReg(m, sv);
+              EmitStackValueLoadReg(m, sv);
               a = sv->val.tworeg.opr1;
               b = sv->val.tworeg.opr2;
             }
@@ -911,7 +911,7 @@ namespace EwaVM
             }
             else
             {
-              ewa_EmitStackValueLoadReg(m, sv);
+              EmitStackValueLoadReg(m, sv);
               a = sv->val.tworeg.opr1;
               b = sv->val.tworeg.opr2;
             }
@@ -941,7 +941,7 @@ namespace EwaVM
             }
             else
             {
-              ewa_EmitStackValueLoadReg(m, sv);
+              EmitStackValueLoadReg(m, sv);
               a = sv->val.tworeg.opr1;
               b = sv->val.tworeg.opr2;
             }
@@ -957,23 +957,23 @@ namespace EwaVM
             sv->val.tworeg.opr2 = b;
             break;
           case 0x86: // i64.shl
-            ewa_EmitCallFunc(m, &func_type_i64_i64_ret_i64, SLJIT_IMM,
+            EmitCallFunc(m, &func_type_i64_i64_ret_i64, SLJIT_IMM,
                                (sljit_sw)&insn_i64shl);
             break;
           case 0x87: // i64.shr_s
-            ewa_EmitCallFunc(m, &func_type_i64_i64_ret_i64, SLJIT_IMM,
+            EmitCallFunc(m, &func_type_i64_i64_ret_i64, SLJIT_IMM,
                                (sljit_sw)&insn_i64shrs);
             break;
           case 0x88: // i64.shr_u
-            ewa_EmitCallFunc(m, &func_type_i64_i64_ret_i64, SLJIT_IMM,
+            EmitCallFunc(m, &func_type_i64_i64_ret_i64, SLJIT_IMM,
                                (sljit_sw)&insn_i64shru);
             break;
           case 0x89: // i64.rotl
-            ewa_EmitCallFunc(m, &func_type_i64_i64_ret_i64, SLJIT_IMM,
+            EmitCallFunc(m, &func_type_i64_i64_ret_i64, SLJIT_IMM,
                                (sljit_sw)&insn_i64rotl);
             break;
           case 0x8a: // i64.rotr
-            ewa_EmitCallFunc(m, &func_type_i64_i64_ret_i64, SLJIT_IMM,
+            EmitCallFunc(m, &func_type_i64_i64_ret_i64, SLJIT_IMM,
                                (sljit_sw)&insn_i64rotr);
             break;
           }
@@ -985,7 +985,7 @@ namespace EwaVM
         {
           sv = &stack[m->sp - 1];
           sv2 = &stack[m->sp];
-          a = ewa_GetFreeReg(m, RT_FLOAT, 2);
+          a = GetFreeReg(m, RT_FLOAT, 2);
         }
         switch (opcode)
         {
@@ -1006,15 +1006,15 @@ namespace EwaVM
                           sv2->val.op, sv2->val.opw);
           break;
         case 0x96: // f32.min
-          ewa_EmitCallFunc(m, &func_type_f32_f32_ret_f32, SLJIT_IMM,
+          EmitCallFunc(m, &func_type_f32_f32_ret_f32, SLJIT_IMM,
                              (sljit_sw)&insn_f32min);
           break;
         case 0x97: // f32.max
-          ewa_EmitCallFunc(m, &func_type_f32_f32_ret_f32, SLJIT_IMM,
+          EmitCallFunc(m, &func_type_f32_f32_ret_f32, SLJIT_IMM,
                              (sljit_sw)&insn_f32max);
           break;
         case 0x98: // f32.copysign
-          ewa_EmitCallFunc(m, &func_type_f32_f32_ret_f32, SLJIT_IMM,
+          EmitCallFunc(m, &func_type_f32_f32_ret_f32, SLJIT_IMM,
                              (sljit_sw)&insn_f32copysign);
           break;
         }
@@ -1034,7 +1034,7 @@ namespace EwaVM
         {
           sv = &stack[m->sp - 1];
           sv2 = &stack[m->sp];
-          a = ewa_GetFreeReg(m, RT_FLOAT, 2);
+          a = GetFreeReg(m, RT_FLOAT, 2);
         }
         switch (opcode)
         {
@@ -1055,15 +1055,15 @@ namespace EwaVM
                           sv2->val.op, sv2->val.opw);
           break;
         case 0xa4: // f64.min
-          ewa_EmitCallFunc(m, &func_type_f64_f64_ret_f64, SLJIT_IMM,
+          EmitCallFunc(m, &func_type_f64_f64_ret_f64, SLJIT_IMM,
                              (sljit_sw)&insn_f64min);
           break;
         case 0xa5: // f64.max
-          ewa_EmitCallFunc(m, &func_type_f64_f64_ret_f64, SLJIT_IMM,
+          EmitCallFunc(m, &func_type_f64_f64_ret_f64, SLJIT_IMM,
                              (sljit_sw)&insn_f64max);
           break;
         case 0xa6: // f64.copysign
-          ewa_EmitCallFunc(m, &func_type_f64_f64_ret_f64, SLJIT_IMM,
+          EmitCallFunc(m, &func_type_f64_f64_ret_f64, SLJIT_IMM,
                              (sljit_sw)&insn_f64copysign);
           break;
         }
@@ -1106,7 +1106,7 @@ namespace EwaVM
         }
         else
         {
-          a = ewa_GetFreeReg(m, RT_INTEGER, 1);
+          a = GetFreeReg(m, RT_INTEGER, 1);
           sljit_emit_op2(m->jitc, SLJIT_AND, a, 0, sv->val.op, sv->val.opw,
                          SLJIT_IMM, 0xffffffff);
           m->sp--;
@@ -1118,7 +1118,7 @@ namespace EwaVM
         break;
       case 0xa8: // i32.trunc_f32_s
         sv = &stack[m->sp];
-        a = ewa_GetFreeReg(m, RT_INTEGER, 1);
+        a = GetFreeReg(m, RT_INTEGER, 1);
         sljit_emit_fop1(m->jitc, SLJIT_CONV_S32_FROM_F32, a, 0, sv->val.op,
                         sv->val.opw);
         m->sp--;
@@ -1128,12 +1128,12 @@ namespace EwaVM
         sv->val.opw = 0;
         break;
       case 0xa9: // i32.trunc_f32_u
-        ewa_EmitCallFunc(m, &func_type_f32_ret_i32, SLJIT_IMM,
+        EmitCallFunc(m, &func_type_f32_ret_i32, SLJIT_IMM,
                            (sljit_sw)&insn_i32truncf32u);
         break;
       case 0xaa: // i32.trunc_f64_s
         sv = &stack[m->sp];
-        a = ewa_GetFreeReg(m, RT_INTEGER, 1);
+        a = GetFreeReg(m, RT_INTEGER, 1);
         sljit_emit_fop1(m->jitc, SLJIT_CONV_S32_FROM_F64, a, 0, sv->val.op,
                         sv->val.opw);
         m->sp--;
@@ -1143,18 +1143,18 @@ namespace EwaVM
         sv->val.opw = 0;
         break;
       case 0xab: // i32.trunc_f64_u
-        ewa_EmitCallFunc(m, &func_type_f64_ret_i32, SLJIT_IMM,
+        EmitCallFunc(m, &func_type_f64_ret_i32, SLJIT_IMM,
                            (sljit_sw)&insn_i32truncf64u);
         break;
       case 0xac: // i64.extend_i32_s
         sv = &stack[m->sp];
-        a = ewa_GetFreeReg(m, RT_INTEGER, 1);
+        a = GetFreeReg(m, RT_INTEGER, 1);
         sljit_emit_op1(m->jitc, SLJIT_MOV_S32, a, 0, sv->val.op, sv->val.opw);
         m->sp--;
         sv = stackvalue_Push(m, WVT_I64);
         if (m->target_ptr_size == 32)
         {
-          b = ewa_GetFreeRegExcept(m, RT_INTEGER, a, 1);
+          b = GetFreeRegExcept(m, RT_INTEGER, a, 1);
           sljit_emit_op2(m->jitc, SLJIT_ASHR, b, 0, a, 0, SLJIT_IMM, 31);
           sv->jit_type = SVT_TWO_REG;
           sv->val.tworeg.opr1 = a;
@@ -1169,13 +1169,13 @@ namespace EwaVM
         break;
       case WASMOPC_i64_extend_i32_u:
         sv = &stack[m->sp];
-        a = ewa_GetFreeReg(m, RT_INTEGER, 1);
+        a = GetFreeReg(m, RT_INTEGER, 1);
         sljit_emit_op1(m->jitc, SLJIT_MOV_U32, a, 0, sv->val.op, sv->val.opw);
         m->sp--;
         sv = stackvalue_Push(m, WVT_I64);
         if (m->target_ptr_size == 32)
         {
-          b = ewa_GetFreeRegExcept(m, RT_INTEGER, a, 1);
+          b = GetFreeRegExcept(m, RT_INTEGER, a, 1);
           sljit_emit_op1(m->jitc, SLJIT_MOV, b, 0, SLJIT_IMM, 0);
           sv->jit_type = SVT_TWO_REG;
           sv->val.tworeg.opr1 = a;
@@ -1191,13 +1191,13 @@ namespace EwaVM
       case 0xae: // i64.trunc_f32_s
         if (m->target_ptr_size == 32)
         {
-          ewa_EmitCallFunc(m, &func_type_f32_ret_i64, SLJIT_IMM,
+          EmitCallFunc(m, &func_type_f32_ret_i64, SLJIT_IMM,
                              (sljit_sw)&insn_i64truncf32s);
         }
         else
         {
           sv = &stack[m->sp];
-          a = ewa_GetFreeReg(m, RT_INTEGER, 1);
+          a = GetFreeReg(m, RT_INTEGER, 1);
           sljit_emit_fop1(m->jitc, SLJIT_CONV_SW_FROM_F32, a, 0, sv->val.op,
                           sv->val.opw);
           m->sp--;
@@ -1209,19 +1209,19 @@ namespace EwaVM
         }
         break;
       case 0xaf: // i64.trunc_f32_u
-        ewa_EmitCallFunc(m, &func_type_f32_ret_i64, SLJIT_IMM,
+        EmitCallFunc(m, &func_type_f32_ret_i64, SLJIT_IMM,
                            (sljit_sw)&insn_i64truncf32u);
         break;
       case 0xb0: // i64.trunc_f64_s
         if (m->target_ptr_size == 32)
         {
-          ewa_EmitCallFunc(m, &func_type_f64_ret_i64, SLJIT_IMM,
+          EmitCallFunc(m, &func_type_f64_ret_i64, SLJIT_IMM,
                              (sljit_sw)&insn_i64truncf64s);
         }
         else
         {
           sv = &stack[m->sp];
-          a = ewa_GetFreeReg(m, RT_INTEGER, 1);
+          a = GetFreeReg(m, RT_INTEGER, 1);
           sljit_emit_fop1(m->jitc, SLJIT_CONV_SW_FROM_F64, a, 0, sv->val.op,
                           sv->val.opw);
           m->sp--;
@@ -1232,12 +1232,12 @@ namespace EwaVM
         }
         break;
       case 0xb1: // i64.trunc_f64_u
-        ewa_EmitCallFunc(m, &func_type_f64_ret_i64, SLJIT_IMM,
+        EmitCallFunc(m, &func_type_f64_ret_i64, SLJIT_IMM,
                            (sljit_sw)&insn_i64truncf64u);
         break;
       case 0xb2: // f32.convert_i32_s
         sv = &stack[m->sp];
-        a = ewa_GetFreeReg(m, RT_FLOAT, 1);
+        a = GetFreeReg(m, RT_FLOAT, 1);
         sljit_emit_fop1(m->jitc, SLJIT_CONV_F32_FROM_S32, a, 0, sv->val.op,
                         sv->val.opw);
         m->sp--;
@@ -1247,19 +1247,19 @@ namespace EwaVM
         sv->val.opw = 0;
         break;
       case 0xb3: // f32.convert_i32_u
-        ewa_EmitCallFunc(m, &func_type_i32_ret_f32, SLJIT_IMM,
+        EmitCallFunc(m, &func_type_i32_ret_f32, SLJIT_IMM,
                            (sljit_sw)&insn_f32converti32u);
         break;
       case 0xb4: // f32.convert_i64_s
         if (m->target_ptr_size == 32)
         {
-          ewa_EmitCallFunc(m, &func_type_i64_ret_f32, SLJIT_IMM,
+          EmitCallFunc(m, &func_type_i64_ret_f32, SLJIT_IMM,
                              (sljit_sw)&insn_f32converti64s);
         }
         else
         {
           sv = &stack[m->sp];
-          a = ewa_GetFreeReg(m, RT_FLOAT, 1);
+          a = GetFreeReg(m, RT_FLOAT, 1);
           sljit_emit_fop1(m->jitc, SLJIT_CONV_F32_FROM_SW, a, 0, sv->val.op,
                           sv->val.opw);
           m->sp--;
@@ -1270,12 +1270,12 @@ namespace EwaVM
         }
         break;
       case 0xb5: // f32.convert_i64_u
-        ewa_EmitCallFunc(m, &func_type_i64_ret_f32, SLJIT_IMM,
+        EmitCallFunc(m, &func_type_i64_ret_f32, SLJIT_IMM,
                            (sljit_sw)&insn_f32converti64u);
         break;
       case 0xb6: // f32.demote_f64
         sv = &stack[m->sp];
-        a = ewa_GetFreeReg(m, RT_FLOAT, 1);
+        a = GetFreeReg(m, RT_FLOAT, 1);
         sljit_emit_fop1(m->jitc, SLJIT_CONV_F32_FROM_F64, a, 0, sv->val.op,
                         sv->val.opw);
         m->sp--;
@@ -1286,7 +1286,7 @@ namespace EwaVM
         break;
       case 0xb7: // f64.convert_i32_s
         sv = &stack[m->sp];
-        a = ewa_GetFreeReg(m, RT_FLOAT, 1);
+        a = GetFreeReg(m, RT_FLOAT, 1);
         sljit_emit_fop1(m->jitc, SLJIT_CONV_F64_FROM_S32, a, 0, sv->val.op,
                         sv->val.opw);
         m->sp--;
@@ -1296,19 +1296,19 @@ namespace EwaVM
         sv->val.opw = 0;
         break;
       case 0xb8: // f64.convert_i32_u
-        ewa_EmitCallFunc(m, &func_type_i32_ret_f64, SLJIT_IMM,
+        EmitCallFunc(m, &func_type_i32_ret_f64, SLJIT_IMM,
                            (sljit_sw)insn_f64converti32u);
         break;
       case 0xb9: // f64.convert_i64_s
         if (m->target_ptr_size == 32)
         {
-          ewa_EmitCallFunc(m, &func_type_i64_ret_f64, SLJIT_IMM,
+          EmitCallFunc(m, &func_type_i64_ret_f64, SLJIT_IMM,
                              (sljit_sw)insn_f64converti64s);
         }
         else
         {
           sv = &stack[m->sp];
-          a = ewa_GetFreeReg(m, RT_FLOAT, 1);
+          a = GetFreeReg(m, RT_FLOAT, 1);
           sljit_emit_fop1(m->jitc, SLJIT_CONV_F64_FROM_SW, a, 0, sv->val.op,
                           sv->val.opw);
           m->sp--;
@@ -1319,12 +1319,12 @@ namespace EwaVM
         }
         break;
       case 0xba: // f64.convert_i64_u
-        ewa_EmitCallFunc(m, &func_type_i64_ret_f64, SLJIT_IMM,
+        EmitCallFunc(m, &func_type_i64_ret_f64, SLJIT_IMM,
                            (sljit_sw)insn_f64converti64u);
         break;
       case 0xbb: // f64.promote_f32
         sv = &stack[m->sp];
-        a = ewa_GetFreeReg(m, RT_FLOAT, 1);
+        a = GetFreeReg(m, RT_FLOAT, 1);
         sljit_emit_fop1(m->jitc, SLJIT_CONV_F64_FROM_F32, a, 0, sv->val.op,
                         sv->val.opw);
         m->sp--;
@@ -1339,7 +1339,7 @@ namespace EwaVM
         sv = &stack[m->sp];
         if (!(sv->jit_type == SVT_GENERAL && (sv->val.op & SLJIT_MEM)))
         {
-          ewa_EmitSaveStack(m, sv);
+          EmitSaveStack(m, sv);
         }
         sv->wasm_type = WVT_I32;
         break;
@@ -1347,7 +1347,7 @@ namespace EwaVM
         sv = &stack[m->sp];
         if (!(sv->jit_type == SVT_GENERAL && (sv->val.op & SLJIT_MEM)))
         {
-          ewa_EmitSaveStack(m, sv);
+          EmitSaveStack(m, sv);
         }
         sv->wasm_type = WVT_I64;
         break;
@@ -1355,7 +1355,7 @@ namespace EwaVM
         sv = &stack[m->sp];
         if (!(sv->jit_type == SVT_GENERAL && (sv->val.op & SLJIT_MEM)))
         {
-          ewa_EmitSaveStack(m, sv);
+          EmitSaveStack(m, sv);
         }
         sv->wasm_type = WVT_F32;
         break;
@@ -1363,20 +1363,20 @@ namespace EwaVM
         sv = &stack[m->sp];
         if (!(sv->jit_type == SVT_GENERAL && (sv->val.op & SLJIT_MEM)))
         {
-          ewa_EmitSaveStack(m, sv);
+          EmitSaveStack(m, sv);
         }
         sv->wasm_type = WVT_F64;
         break;
       case 0xc0: // i32.extend8_s
         sv = &stack[m->sp];
-        a = ewa_GetFreeReg(m, RT_INTEGER, 1);
+        a = GetFreeReg(m, RT_INTEGER, 1);
         sljit_emit_op1(m->jitc, SLJIT_MOV32_S8, a, 0, sv->val.op, sv->val.opw);
         sv->val.op = a;
         sv->val.opw = 0;
         break;
       case 0xc1: // i32.extend16_s
         sv = &stack[m->sp];
-        a = ewa_GetFreeReg(m, RT_INTEGER, 1);
+        a = GetFreeReg(m, RT_INTEGER, 1);
         sljit_emit_op1(m->jitc, SLJIT_MOV32_S16, a, 0, sv->val.op, sv->val.opw);
         sv->val.op = a;
         sv->val.opw = 0;
@@ -1385,7 +1385,7 @@ namespace EwaVM
         sv = &stack[m->sp];
         if (m->target_ptr_size == 32)
         {
-          ewa_EmitStackValueLoadReg(m, sv);
+          EmitStackValueLoadReg(m, sv);
           sljit_emit_op1(m->jitc, SLJIT_MOV_S8, sv->val.tworeg.opr1, 0, sv->val.op,
                          sv->val.opw);
           sljit_emit_op2(m->jitc, SLJIT_ASHR, sv->val.tworeg.opr2, 0,
@@ -1393,7 +1393,7 @@ namespace EwaVM
         }
         else
         {
-          a = ewa_GetFreeReg(m, RT_INTEGER, 1);
+          a = GetFreeReg(m, RT_INTEGER, 1);
           sljit_emit_op1(m->jitc, SLJIT_MOV_S8, a, 0, sv->val.op, sv->val.opw);
           sv->val.op = a;
           sv->val.opw = 0;
@@ -1403,7 +1403,7 @@ namespace EwaVM
         sv = &stack[m->sp];
         if (m->target_ptr_size == 32)
         {
-          ewa_EmitStackValueLoadReg(m, sv);
+          EmitStackValueLoadReg(m, sv);
           sljit_emit_op1(m->jitc, SLJIT_MOV_S16, sv->val.tworeg.opr1, 0, sv->val.op,
                          sv->val.opw);
           sljit_emit_op2(m->jitc, SLJIT_ASHR, sv->val.tworeg.opr2, 0,
@@ -1411,7 +1411,7 @@ namespace EwaVM
         }
         else
         {
-          a = ewa_GetFreeReg(m, RT_INTEGER, 1);
+          a = GetFreeReg(m, RT_INTEGER, 1);
           sljit_emit_op1(m->jitc, SLJIT_MOV_S8, a, 0, sv->val.op, sv->val.opw);
           sv->val.op = a;
           sv->val.opw = 0;
@@ -1421,13 +1421,13 @@ namespace EwaVM
         sv = &stack[m->sp];
         if (m->target_ptr_size == 32)
         {
-          ewa_EmitStackValueLoadReg(m, sv);
+          EmitStackValueLoadReg(m, sv);
           sljit_emit_op2(m->jitc, SLJIT_ASHR, sv->val.tworeg.opr2, 0,
                          sv->val.tworeg.opr1, 0, SLJIT_IMM, 31);
         }
         else
         {
-          a = ewa_GetFreeReg(m, RT_INTEGER, 1);
+          a = GetFreeReg(m, RT_INTEGER, 1);
           sljit_emit_op1(m->jitc, SLJIT_MOV_S8, a, 0, sv->val.op, sv->val.opw);
           sv->val.op = a;
           sv->val.opw = 0;
