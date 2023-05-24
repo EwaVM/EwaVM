@@ -1,4 +1,4 @@
-#include <def.h>
+#include <internal/def.h>
 
 namespace EwaVM
 {

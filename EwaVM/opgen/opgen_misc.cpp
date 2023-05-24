@@ -1,4 +1,4 @@
-#include <def.h>
+#include <internal/def.h>
 
 namespace EwaVM
 {
@@ -181,12 +181,12 @@ namespace EwaVM
     {
       int i1;
       ewa_get_builtin_symbols(&i1);
-      if (fn == ewa_InlineFuncList.get_self_runtime_context)
+      if (fn == InlineFuncList.get_self_runtime_context)
       {
         opgen_GenRefConst(m, m->context);
         return 1;
       }
-      else if (fn == ewa_InlineFuncList.ref_from_i64)
+      else if (fn == InlineFuncList.ref_from_i64)
       {
         if (m->target_ptr_size == 32)
         {
@@ -195,7 +195,7 @@ namespace EwaVM
         m->stack[m->sp].wasm_type = WVT_REF;
         return 1;
       }
-      else if (fn == ewa_InlineFuncList.i64_from_ref)
+      else if (fn == InlineFuncList.i64_from_ref)
       {
         if (m->target_ptr_size == 32)
         {
@@ -205,7 +205,7 @@ namespace EwaVM
         m->stack[m->sp].wasm_type = WVT_I64;
         return 1;
       }
-      else if (fn == ewa_InlineFuncList.ref_from_index)
+      else if (fn == InlineFuncList.ref_from_index)
       {
         StackValue *sv = m->stack + m->sp - 1;
         SLJIT_ASSERT((sv->jit_type == SVT_GENERAL) && (sv->val.op == SLJIT_IMM));

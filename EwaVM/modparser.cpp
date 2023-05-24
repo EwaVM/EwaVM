@@ -1,4 +1,4 @@
-#include <def.h>
+#include <internal/def.h>
 
 namespace EwaVM
 {
@@ -247,7 +247,7 @@ namespace EwaVM
                     val = NULL;
                     if (m->import_resolver != NULL)
                     {
-                        struct ewa_symbol_resolve_request req;
+                        struct EwaSymbolResolveRequest req;
                         req.import_module = import_module;
                         req.import_field = import_field;
                         req.kind = external_kind;
@@ -259,7 +259,7 @@ namespace EwaVM
                     if (val == NULL && !strcmp("ewa_builtin", import_module))
                     {
                         int arrlen = 0, i1 = 0;
-                        struct ewa_named_symbol *builtin = ewa_get_builtin_symbols(&arrlen);
+                        struct NamedSymbol *builtin = ewa_get_builtin_symbols(&arrlen);
                         for (i1 = 0; i1 < arrlen; i1++)
                         {
                             if (!strcmp(builtin[i1].name, import_field))

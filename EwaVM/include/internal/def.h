@@ -124,9 +124,9 @@ namespace EwaVM
         } val;
     } StackValue;
 
-    typedef struct ewa_wasm_table Table;
+    typedef struct WasmManagedTable Table;
 
-    typedef struct ewa_wasm_memory Memory;
+    typedef struct WasmManagedMemory Memory;
 
     typedef struct Export
     {
@@ -150,12 +150,12 @@ namespace EwaVM
         Table *own_tables;    // tables owned by module self, not imported. (can't move)
         Memory *own_memories; // memories owned by module self, not imported. (can't move)
         // XXX: maybe use fixed size array is better
-        struct dynarr *own_globals;             // globals variable buffer, type uint8_t
-        struct dynarr *tables;                  // tables, type Table *
-        struct dynarr *memories;                // memories, type Memory *
-        struct dynarr *exports;                 // exorts, type Export
-        struct ewa_symbol_resolver *resolver; // symbol resolver.
-        void *userdata;                         // user data, ewa don't use it.
+        struct dynarr *own_globals;         // globals variable buffer, type uint8_t
+        struct dynarr *tables;              // tables, type Table *
+        struct dynarr *memories;            // memories, type Memory *
+        struct dynarr *exports;             // exorts, type Export
+        struct EwaSymbolResolver *resolver; // symbol resolver.
+        void *userdata;                     // user data, ewa don't use it.
     } RuntimeContext;
 
     // compile module info
@@ -181,7 +181,7 @@ namespace EwaVM
 
         struct dynarr *functions; // functions, type WasmFunction
 
-        struct ewa_symbol_resolver *import_resolver;
+        struct EwaSymbolResolver *import_resolver;
 
         uint8_t compile_succeeded;
 
@@ -222,8 +222,8 @@ namespace EwaVM
 
     typedef struct
     {
-        struct ewa_symbol_resolver resolver;
-        struct dynarr *mods; // modules in this namespace, type ewa_named_module.
+        struct EwaSymbolResolver resolver;
+        struct dynarr *mods; // modules in this namespace, type WasmNamedModule.
     } Namespace;
 
 #if DEBUG_BUILD
@@ -477,13 +477,13 @@ namespace EwaVM
 
 #endif
 
-    static struct
+    struct
     {
-        ewa_wasm_function get_self_runtime_context;
-        ewa_wasm_function ref_from_index;
-        ewa_wasm_function ref_from_i64;
-        ewa_wasm_function i64_from_ref;
-    } ewa_InlineFuncList;
+        WasmManagedFunction get_self_runtime_context;
+        WasmManagedFunction ref_from_index;
+        WasmManagedFunction ref_from_i64;
+        WasmManagedFunction i64_from_ref;
+    } InlineFuncList;
 
 #define WASMOPC_i32_wrap_i64 0xa7
 #define WASMOPC_i64_extend_i32_u 0xad
@@ -494,10 +494,10 @@ namespace EwaVM
 #define WASMOPC_i32_shl 0x74
 #define WASMOPC_i64_shl 0x86
 
-    Namespace *namespace_GetNamespaceFormResolver(struct ewa_symbol_resolver *_this);
-    void namespace_SymbolResolve(struct ewa_symbol_resolver *_this, struct ewa_symbol_resolve_request *req);
+    Namespace *namespace_GetNamespaceFormResolver(struct EwaSymbolResolver *_this);
+    void namespace_SymbolResolve(struct EwaSymbolResolver *_this, struct EwaSymbolResolveRequest *req);
 
-    extern struct ewa_global_compile_config ewa_gcfg;
+    extern struct EwaGlobalCompileConfig gConfig;
 
     // modparser.cpp
     uint32_t read_string(uint8_t *bytes, uint32_t *pos, uint32_t maxlen, char *buf);

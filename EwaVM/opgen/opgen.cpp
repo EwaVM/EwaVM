@@ -1,10 +1,11 @@
-#include <def.h>
+#include <internal/def.h>
 
 namespace EwaVM
 {
   namespace OpGen
   {
-    void skip_immediates(uint8_t *bytes, uint32_t *pos)
+
+    void SkipImmediates(uint8_t *bytes, uint32_t *pos)
     {
       uint32_t count, opcode = bytes[*pos];
       *pos = *pos + 1;
@@ -252,7 +253,7 @@ namespace EwaVM
         case 0x20: // local.get
           arg = read_LEB(bytes, (uint32_t *)&m->pc, 32);
           sv = dynarr_get(m->locals, StackValue, arg);
-          if (ewa_gcfg.misc_flags & MISC_FLAGS_LOCALS_ZERO_INIT)
+          if (gConfig.misc_flags & MISC_FLAGS_LOCALS_ZERO_INIT)
           {
             if (sv->val.op > m->blocks->len)
               sv->jit_type |= 1;
@@ -261,7 +262,7 @@ namespace EwaVM
         case 0x21: // local.set
           arg = read_LEB(bytes, (uint32_t *)&m->pc, 32);
           sv = dynarr_get(m->locals, StackValue, arg);
-          if (ewa_gcfg.misc_flags & MISC_FLAGS_LOCALS_ZERO_INIT)
+          if (gConfig.misc_flags & MISC_FLAGS_LOCALS_ZERO_INIT)
           {
             if (sv->val.op > m->blocks->len)
               sv->val.op = m->blocks->len;
@@ -270,7 +271,7 @@ namespace EwaVM
         case 0x22: // local.tee
           arg = read_LEB(bytes, (uint32_t *)&m->pc, 32);
           sv = dynarr_get(m->locals, StackValue, arg);
-          if (ewa_gcfg.misc_flags & MISC_FLAGS_LOCALS_ZERO_INIT)
+          if (gConfig.misc_flags & MISC_FLAGS_LOCALS_ZERO_INIT)
           {
             if (sv->val.op > m->blocks->len)
               sv->jit_type |= 1;
@@ -278,7 +279,7 @@ namespace EwaVM
           break;
         default:
           m->pc--;
-          skip_immediates(m->bytes, (uint32_t *)&m->pc);
+          SkipImmediates(m->bytes, (uint32_t *)&m->pc);
           break;
         }
       }
@@ -287,7 +288,7 @@ namespace EwaVM
         return "Function not end with 0x0b, unsupported feature may used.";
       }
       m->locals_need_zero = NULL;
-      if (ewa_gcfg.misc_flags & MISC_FLAGS_LOCALS_ZERO_INIT)
+      if (gConfig.misc_flags & MISC_FLAGS_LOCALS_ZERO_INIT)
       {
         dynarr_init(&m->locals_need_zero, sizeof(int16_t));
         for (int i1 = paramCnt; i1 < m->locals->len; i1++)

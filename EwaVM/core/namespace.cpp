@@ -1,26 +1,26 @@
-#include <def.h>
+#include <internal/def.h>
 
 namespace EwaVM
 {
 
-    struct ewa_global_compile_config ewa_gcfg = {
+    struct EwaGlobalCompileConfig gConfig = {
         .stack_flags = 0,
         .misc_flags = MISC_FLAGS_LOCALS_ZERO_INIT};
 
-    Namespace *namespace_GetNamespaceFormResolver(struct ewa_symbol_resolver *_this)
+    Namespace *namespace_GetNamespaceFormResolver(struct EwaSymbolResolver *_this)
     {
         return (Namespace *)_this;
     }
 
-    struct ewa_symbol_resolver *ewa_namespace_resolver(ewa_namespace ns)
+    struct EwaSymbolResolver *GetNamespaceSymbolResolver(WasmNamespace ns)
     {
         return &((Namespace *)ns)->resolver;
     }
 
-    void namespace_SymbolResolve(struct ewa_symbol_resolver *_this, struct ewa_symbol_resolve_request *req)
+    void namespace_SymbolResolve(struct EwaSymbolResolver *_this, struct EwaSymbolResolveRequest *req)
     {
         Namespace *n = namespace_GetNamespaceFormResolver(_this);
-        struct ewa_named_module *m = ewa_namespace_find_module(n, req->import_module);
+        struct WasmNamedModule *m = WFindNamespaceModule(n, req->import_module);
         req->result = NULL;
         if (m == NULL)
         {
@@ -35,16 +35,16 @@ namespace EwaVM
             switch (req->kind)
             {
             case SYMBOL_KIND_FUNCTION:
-                req->result = ewa_get_export_function(m->val.wasm, req->import_field);
+                req->result = GetExportFunction(m->val.wasm, req->import_field);
                 break;
             case SYMBOL_KIND_GLOBAL:
-                req->result = ewa_get_export_global(m->val.wasm, req->import_field);
+                req->result = GetExportGlobal(m->val.wasm, req->import_field);
                 break;
             case SYMBOL_KIND_TABLE:
-                req->result = ewa_get_export_table(m->val.wasm, req->import_field);
+                req->result = GetExportTable(m->val.wasm, req->import_field);
                 break;
             case SYMBOL_KIND_MEMORY:
-                req->result = ewa_get_export_memory(m->val.wasm, req->import_field);
+                req->result = GetExportMemory(m->val.wasm, req->import_field);
                 break;
             }
             break;
@@ -52,21 +52,21 @@ namespace EwaVM
         return;
     }
 
-    ewa_namespace ewa_namespace_new()
+    WasmNamespace NewNamespace()
     {
         Namespace *ns = (Namespace *)wa_calloc(sizeof(Namespace));
-        dynarr_init(&ns->mods, sizeof(struct ewa_named_module));
+        dynarr_init(&ns->mods, sizeof(struct WasmNamedModule));
         ns->resolver.resolve = &namespace_SymbolResolve;
         return ns;
     }
 
-    char *ewa_namespace_delete(ewa_namespace ns)
+    char *FreeNamespace(WasmNamespace ns)
     {
         Namespace *n = (Namespace *)ns;
         int i = 0;
         for (i = 0; i < n->mods->len; i++)
         {
-            struct ewa_named_module *m = dynarr_get(n->mods, struct ewa_named_module, i);
+            struct WasmNamedModule *m = dynarr_get(n->mods, struct WasmNamedModule, i);
             switch (m->type)
             {
             case MODULE_TYPE_HOST_MODULE:
@@ -76,7 +76,7 @@ namespace EwaVM
                 }
                 break;
             case MODULE_TYPE_WASM_MODULE:
-                ReturnIfErr(ewa_free_module_state(m->val.wasm));
+                ReturnIfErr(FreeModuleState(m->val.wasm));
                 break;
             }
         }
@@ -84,13 +84,13 @@ namespace EwaVM
         return NULL;
     }
 
-    struct ewa_named_module *ewa_namespace_find_module(ewa_namespace ns, char *name)
+    struct WasmNamedModule *WFindNamespaceModule(WasmNamespace ns, char *name)
     {
         Namespace *n = (Namespace *)ns;
         int i = 0;
         for (i = 0; i < n->mods->len; i++)
         {
-            struct ewa_named_module *m = dynarr_get(n->mods, struct ewa_named_module, i);
+            struct WasmNamedModule *m = dynarr_get(n->mods, struct WasmNamedModule, i);
             if (strcmp(m->name, name) == 0)
             {
                 return m;
@@ -99,9 +99,9 @@ namespace EwaVM
         return NULL;
     }
 
-    char *ewa_namespace_remove_module(ewa_namespace ns, char *name)
+    char *RemoveNamespaceModule(WasmNamespace ns, char *name)
     {
-        struct ewa_named_module *m = ewa_namespace_find_module(ns, name);
+        struct WasmNamedModule *m = WFindNamespaceModule(ns, name);
         if (m != NULL)
         {
             switch (m->type)
@@ -113,7 +113,7 @@ namespace EwaVM
                 }
                 break;
             case MODULE_TYPE_WASM_MODULE:
-                ReturnIfErr(ewa_free_module_state(m->val.wasm));
+                ReturnIfErr(FreeModuleState(m->val.wasm));
                 break;
             }
             m->type = MODULE_TYPE_NULL;
@@ -121,20 +121,20 @@ namespace EwaVM
         return NULL;
     }
 
-    char *ewa_namespace_define_module(ewa_namespace ns, struct ewa_named_module *mod)
+    char *DefineModule(WasmNamespace ns, struct WasmNamedModule *mod)
     {
         Namespace *n = (Namespace *)ns;
-        struct ewa_named_module *m;
-        m = ewa_namespace_find_module(ns, mod->name);
+        struct WasmNamedModule *m;
+        m = WFindNamespaceModule(ns, mod->name);
         if (m != NULL)
         {
-            ewa_namespace_remove_module(ns, m->name);
+            RemoveNamespaceModule(ns, m->name);
         }
         else
         {
-            m = dynarr_push_type(&n->mods, struct ewa_named_module);
+            m = dynarr_push_type(&n->mods, struct WasmNamedModule);
         }
-        memmove(m, mod, sizeof(struct ewa_named_module));
+        memmove(m, mod, sizeof(struct WasmNamedModule));
         switch (m->type)
         {
         case MODULE_TYPE_HOST_MODULE:
@@ -145,24 +145,24 @@ namespace EwaVM
             }
             break;
         case MODULE_TYPE_WASM_MODULE:
-            ewa_set_state_symbol_resolver(m->val.wasm, &n->resolver);
+            SetStateSymbolResolver(m->val.wasm, &n->resolver);
             ((RuntimeContext *)m->val.wasm)->is_in_namespace = 1;
             break;
         }
     }
 
-    ewa_module_state *ewa_namespace_define_wasm_module(ewa_namespace ns, char *name, char *wasm_bytes, int length, char **err_msg)
+    EwaModuleState *DefineWasmModule(WasmNamespace ns, char *name, char *wasm_bytes, int length, char **err_msg)
     {
         Namespace *n = (Namespace *)ns;
-        struct ewa_named_module mod;
+        struct WasmNamedModule mod;
         char *err = NULL;
-        ewa_module_state state = NULL;
-        ewa_module_compiler m = ewa_new_module_compiler();
-        ewa_set_symbol_resolver(m, &n->resolver);
-        err = ewa_compile(m, wasm_bytes, length);
+        EwaModuleState state = NULL;
+        EwaModuleCompiler m = NewModuleCompiler();
+        SetSymbolResovler(m, &n->resolver);
+        err = Compile(m, wasm_bytes, length);
         if (err == NULL)
         {
-            state = ewa_get_module_state(m);
+            state = GetModuleState(m);
         }
         else
         {
@@ -170,12 +170,12 @@ namespace EwaVM
                 *err_msg = err;
             return NULL;
         }
-        ewa_free_module_compiler(m);
+        FreeModuleCompiler(m);
         mod.name = name;
         mod.type = MODULE_TYPE_WASM_MODULE;
         mod.val.wasm = state;
-        ewa_namespace_define_module(ns, &mod);
-        return (ewa_module_state *)state;
+        DefineModule(ns, &mod);
+        return (EwaModuleState *)state;
     }
 
 };

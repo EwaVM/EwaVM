@@ -1,4 +1,4 @@
-#include <def.h>
+#include <internal/def.h>
 
 namespace EwaVM
 {
@@ -74,7 +74,7 @@ namespace EwaVM
 
       if (m->target_ptr_size == 64 && sv->wasm_type == WVT_I32)
       {
-        if ((sv->jit_type == SVT_DUMMY || sv->jit_type == SVT_GENERAL) && sv->val.op < SLJIT_IMM && !(ewa_gcfg.misc_flags & MISC_FLAGS_EXTEND_INDEX))
+        if ((sv->jit_type == SVT_DUMMY || sv->jit_type == SVT_GENERAL) && sv->val.op < SLJIT_IMM && !(gConfig.misc_flags & MISC_FLAGS_EXTEND_INDEX))
         {
           sv->wasm_type = WVT_I64;
         }
@@ -298,7 +298,7 @@ namespace EwaVM
 
       if (m->target_ptr_size == 64 && sv2->wasm_type == WVT_I32)
       {
-        if ((sv2->jit_type == SVT_DUMMY || sv2->jit_type == SVT_GENERAL) && sv2->val.op < SLJIT_IMM && !(ewa_gcfg.misc_flags & MISC_FLAGS_EXTEND_INDEX))
+        if ((sv2->jit_type == SVT_DUMMY || sv2->jit_type == SVT_GENERAL) && sv2->val.op < SLJIT_IMM && !(gConfig.misc_flags & MISC_FLAGS_EXTEND_INDEX))
         {
           sv2->wasm_type = WVT_I64;
         }

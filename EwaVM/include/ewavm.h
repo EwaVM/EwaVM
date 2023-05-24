@@ -8,27 +8,27 @@ namespace EwaVM
     /* Low Level API , about loading and compiling wasm module.*/
 
     /* return error message if any, or NULL if succeded. */
-    struct SymbolResolveRequest
+    struct EwaSymbolResolveRequest
     {
         char *import_module;
         char *import_field;
         uint32_t kind;
         void *result;
     };
-    struct SymbolResolver
+    struct EwaSymbolResolver
     {
-        void (*resolve)(struct SymbolResolver *_this, struct SymbolResolveRequest *req);
+        void (*resolve)(struct EwaSymbolResolver *_this, struct EwaSymbolResolveRequest *req);
     };
 
-    typedef void *ModuleCompiler;
+    typedef void *EwaModuleCompiler;
 
-    typedef void *ModuleState;
+    typedef void *EwaModuleState;
 
     /* webassembly function definition (for 1.0 version) */
 
     typedef void *WasmManagedFunction;
 
-    typedef void (*host_function_c)(void *stack_frame);
+    typedef void (*ewa_host_function_c)(void *stack_frame);
 
 /* symbol type */
 #define SYMBOL_KIND_FUNCTION 0
@@ -39,7 +39,7 @@ namespace EwaVM
     /* module load config */
 
     /* These config are related to ABI of the generated code, so keep same config to load module at same time in one process. */
-    struct GlobalCompileCOnfig
+    struct EwaGlobalCompileConfig
     {
         /* ewa_STACK_FLAGS_xxx flags, indicate how operand stored in stack. */
         char stack_flags;
@@ -62,7 +62,7 @@ ewa use a simple glance instead of SSA analyzation, So this flag may slow the ge
 But according to the WebAssembly spec, this flag is SET by default  */
 #define MISC_FLAGS_LOCALS_ZERO_INIT 2
 
-    struct WasmTable
+    struct WasmManagedTable
     {
         uint8_t elem_type; /* type of entries (only FUNC in MVP) */
         uint32_t initial;  /* initial table size */
@@ -70,7 +70,7 @@ But according to the WebAssembly spec, this flag is SET by default  */
         uint32_t size;     /* current table size */
         void **entries;
     };
-    struct WasmMemory
+    struct WasmManagedMemory
     {
         uint32_t initial; /* initial size (64K pages) */
         uint32_t maximum; /* maximum size (64K pages) */
@@ -89,9 +89,9 @@ But according to the WebAssembly spec, this flag is SET by default  */
         uint8_t fixed;
     };
 
-    /* ModuleState inspect result */
-    //struct ewa_inspect_result1
-    struct StateInspectResult
+    /* EwaModuleState inspect result */
+    // struct ewa_inspect_result1
+    struct EwaInspectResult
     {
         /* memory 0 size , in byte */
         int memory_size;
@@ -102,20 +102,23 @@ But according to the WebAssembly spec, this flag is SET by default  */
         /* global buffer size, in byte */
         int globals_buffer_size;
         void *globals_buffer;
-        struct SymbolResolver *symbol_resolver;
+        struct EwaSymbolResolver *symbol_resolver;
     };
 
-    struct WasmNamedSymbol
+    struct NamedSymbol
     {
         const char *name;
         union
         {
-            WasmFunction fn;
-            struct WasmMemory *mem;
-            struct WasmTable *tb;
+            WasmManagedFunction fn;
+            struct WasmManagedMemory *mem;
+            struct WasmManagedTable *tb;
         } val;
         uint8_t kind;
     };
+    /* get the ewa builtin symbol array. Builtin symbol can be use by import "ewa_builtin" module in wasm. */
+    extern struct NamedSymbol *ewa_get_builtin_symbols(int *arr_size);
+
     /*
     ewa builtin symbols list
 
@@ -132,7 +135,7 @@ But according to the WebAssembly spec, this flag is SET by default  */
     memory_alloc
     func [i32 size]->[i64]
     allocate memory with 'size', in byte, return i64 index on native_memory, for 32bit native_memory, the most significant 32bit word are 0.
-    see also WasmMemory.bytes
+    see also WasmManagedMemory.bytes
 
     memory_free
     func [i64]->[]
@@ -190,7 +193,7 @@ But according to the WebAssembly spec, this flag is SET by default  */
 
     fread
     func [ref buf,i32 size,i32 count,ref file]->[i32 nread]
-    WasmFunction fread;
+    WasmManagedFunction fread;
 
     fwrite
     func [ref buf,i32 size,i32 count,ref file]->[i32 nwrite]
@@ -203,22 +206,22 @@ But according to the WebAssembly spec, this flag is SET by default  */
 
     native_memory
     memory
-    special WasmMemory that map to the native host memory directly, memory->bytes is 0;
+    special WasmManagedMemory that map to the native host memory directly, memory->bytes is 0;
     */
 
     /* High level API, Namespace and Module */
 
-    typedef void *ewa_namespace;
+    typedef void *WasmNamespace;
 
-    struct ewa_host_module
+    struct WasmManagedModule
     {
-        void (*resolve)(struct ewa_host_module *_this, struct SymbolResolveRequest *req);
+        void (*resolve)(struct WasmManagedModule *_this, struct EwaSymbolResolveRequest *req);
         /*Will be set after added to namespace , suffixed 2 to avoid keyword conflict with c++*/
-        ewa_namespace namespace2;
+        WasmNamespace namespace2;
         /*If not null, call after added to namespace */
-        void (*on_attached)(struct ewa_host_module *_this);
+        void (*on_attached)(struct WasmManagedModule *_this);
         /*If not null, call after remove from namespace, or namespace is deleted */
-        void (*on_detached)(struct ewa_host_module *_this);
+        void (*on_detached)(struct WasmManagedModule *_this);
     };
 
 #define MODULE_TYPE_HOST_MODULE 1
@@ -226,88 +229,89 @@ But according to the WebAssembly spec, this flag is SET by default  */
 /* Indicate module has been free. */
 #define MODULE_TYPE_NULL 0;
 
-    struct ewa_named_module
+    struct WasmNamedModule
     {
         char *name;
         int type; /* MODULE_TYPE_xxxx */
         union
         {
-            struct ewa_host_module *host;
-            ModuleState wasm;
+            struct WasmManagedModule *host;
+            EwaModuleState wasm;
         } val;
     };
+
 
     extern int GetVersion();
 
     /*  LoadModule load a module from data, if succeeded, return compiled module, if failed, return NULL and set err_msg, if err_msg is not NULL.
         It invoke "NewModuleCompiler","Compile","GetModuleState","FreeModuleCompiler" internally. */
-    extern ModuleState *LoadModule(char *data, int len, char **err_msg);
+    extern EwaModuleState *LoadModule(char *data, int len, char **err_msg);
 
-    extern ModuleCompiler NewModuleCompiler();
+    extern EwaModuleCompiler NewModuleCompiler();
 
-    /*  free compile infomation, have no effect to ModuleState and generated code.
+    /*  free compile infomation, have no effect to EwaModuleState and generated code.
         return error message if any, or NULL if succeded. */
-    extern char *FreeModuleCompiler(ModuleCompiler mod);
+    extern char *FreeModuleCompiler(EwaModuleCompiler mod);
 
-    extern char *SetSymbolResolver(ModuleCompiler m, struct SymbolResolver *resolver);
+    extern char *SetSymbolResovler(EwaModuleCompiler m, struct EwaSymbolResolver *resolver);
 
     /*  compile module and generate code. if cfg is NULL, use default compile config.
         return error message if any, or NULL if succeded. */
-    extern char *Compile(ModuleCompiler m, char *data, int len);
+    extern char *Compile(EwaModuleCompiler m, char *data, int len);
 
     /*  return wasm start function, or NULL if no start function specified.
         you should call the start function to init module, according to WebAssembly spec.
         Though it's may not necessary for ewa. */
-    extern WasmFunction GetStartFunction(ModuleState m);
+    extern WasmManagedFunction GetStartFunction(EwaModuleState m);
 
     /*  return error message if any, or NULL if succeded. */
-    extern char *SetGlobalCompileConfig(struct GlobalCompileCOnfig *config);
-    extern char *GetGlobalCompileConfig(struct GlobalCompileCOnfig *config);
+    extern char *SetGlobalCompileConfig(struct EwaGlobalCompileConfig *config);
+    extern char *GetGlobalCompileConfig(struct EwaGlobalCompileConfig *config);
 
-    extern ModuleState GetModuleState(ModuleCompiler m);
+    extern EwaModuleState GetModuleState(EwaModuleCompiler m);
 
     /*  free module state and generated code.
         return error message if any, or NULL if succeded.
         only need free if Compile succeeded. */
-    extern char *FreeModuleState(ModuleState rc);
+    extern char *FreeModuleState(EwaModuleState rc);
 
-    /*  The symbol resolver of ModuleState will be set to the same as compiler use by default,
+    /*  The symbol resolver of EwaModuleState will be set to the same as compiler use by default,
         and can be changed by this function */
-    extern char *SetStateSymbolResolver(ModuleState rc, struct SymbolResolver *resolver);
+    extern char *SetStateSymbolResolver(EwaModuleState rc, struct EwaSymbolResolver *resolver);
 
     /* get wasm function exported by wasm module runtime. */
-    extern WasmFunction GetExportFunction(ModuleState rc, char *name);
+    extern WasmManagedFunction GetExportFunction(EwaModuleState rc, char *name);
 
     /* get wasm memory exported by wasm module runtime. */
-    extern struct WasmMemory *GetExportMemory(ModuleState rc, char *name);
+    extern struct WasmManagedMemory *GetExportMemory(EwaModuleState rc, char *name);
 
     /* get wasm table exported by wasm module runtime. */
-    extern struct WasmTable *GetExportTable(ModuleState rc, char *name);
+    extern struct WasmManagedTable *GetExportTable(EwaModuleState rc, char *name);
 
     /* get wasm globals exported by wasm module runtime. */
-    extern void *GetExportGlobal(ModuleState rc, char *name);
+    extern void *GetExportGlobal(EwaModuleState rc, char *name);
 
     /*  return error message if any, or NULL if succeded. */
-    extern char *InspectModuleState(ModuleState c, struct StateInspectResult *result);
+    extern char *InspectModuleState(EwaModuleState c, struct EwaInspectResult *result);
 
-    extern void SetModuleStateUserData(ModuleState c, void *ud);
-    extern void *GetModuleStateUserData(ModuleState c);
+    extern void SetModuleStateUserData(EwaModuleState c, void *ud);
+    extern void *GetModuleStateUserData(EwaModuleState c);
 
     /*  return error message if any, or NULL if succeded. */
-    extern char *FreeModuleCompiler(ModuleCompiler mod);
+    extern char *FreeModuleCompiler(EwaModuleCompiler mod);
 
     /* ewa invoke and runtime stack helper */
 
-    /* allocate a stack buffer, with align 16. can only be free by FreeDynamicStack. */
-    extern void *AllocateDynamicStack(int size);
-    extern void FreeDynamicStack(void *stack);
+    /* allocate a stack buffer, with align 16. can only be free by FreeManagedStack. */
+    extern void *AllocateManagedStack(int size);
+    extern void FreeManagedStack(void *stack);
 
     /* wrap host function to wasm function, must be free by FreeWrappedFunction. */
-    extern WasmFunction WrapHostFunctionStdC(host_function_c host_func);
+    extern WasmManagedFunction WrapHostStdcFunction(ewa_host_function_c host_func);
 
-    extern void FreeWrappedFunction(WasmFunction wrapped);
+    extern void FreeWrappedFunction(WasmManagedFunction wrapped);
 
-    extern void CallCompiledFunction(WasmFunction fn, void *stack_pointer);
+    extern void CallFunction(WasmManagedFunction fn, void *stack_pointer);
 
     /* For version 1.0, arguments and results are all stored on stack. */
     /* stack_flags has effect on these function. */
@@ -325,22 +329,20 @@ But according to the WebAssembly spec, this flag is SET by default  */
     extern double ewa_rstack_get_f64(void **sp);
     extern void *ewa_rstack_get_ref(void **sp);
 
-    /* get the ewa builtin symbol array. Builtin symbol can be use by import "ewa_builtin" module in wasm. */
-    extern struct WasmNamedSymbol *GetBuiltinSymbols(int *arr_size);
 
-    ewa_namespace NewNamespace();
+    WasmNamespace NewNamespace();
 
-    char *ReleaseNamespace(ewa_namespace ns);
+    char *FreeNamespace(WasmNamespace ns);
 
-    char *RemoveNamespaceModule(ewa_namespace ns, char *name);
+    char *RemoveNamespaceModule(WasmNamespace ns, char *name);
 
     /* module structure will be copied into internal buffer, No need for caller to hold the memory */
-    char *DefineNamespaceModule(ewa_namespace ns, struct ewa_named_module *mod);
+    char *DefineModule(WasmNamespace ns, struct WasmNamedModule *mod);
 
-    ModuleState *DefineNamespaceWasmModule(ewa_namespace ns, char *name, char *wasm_bytes, int length, char **err_msg);
+    EwaModuleState *DefineWasmModule(WasmNamespace ns, char *name, char *wasm_bytes, int length, char **err_msg);
 
-    struct ewa_named_module *FindNamespaceModule(ewa_namespace ns, char *name);
+    struct WasmNamedModule *WFindNamespaceModule(WasmNamespace ns, char *name);
 
-    struct SymbolResolver *GetNamespaceResolver(ewa_namespace ns);
+    struct EwaSymbolResolver *GetNamespaceSymbolResolver(WasmNamespace ns);
 
 };

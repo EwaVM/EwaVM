@@ -1,4 +1,4 @@
-#include <core.h>
+#include <internal/core.h>
 
 namespace EwaVM
 {

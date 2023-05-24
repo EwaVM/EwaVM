@@ -1,4 +1,4 @@
-#include <def.h>
+#include <internal/def.h>
 
 namespace EwaVM
 {
@@ -369,7 +369,7 @@ namespace EwaVM
     // get ewa version
     void insn_version(uint32_t *fp)
     {
-      *fp = ewa_get_version();
+      *fp = GetVersion();
     }
     // allocate memory
     void insn_memory_alloc(void *fp)
@@ -468,11 +468,11 @@ namespace EwaVM
       sp = fp;
       Namespace *ns = (Namespace *)namespace_GetNamespaceFormResolver(m->resolver);
       char *err_msg = NULL;
-      ewa_module_state stat = ewa_namespace_define_wasm_module((ewa_namespace)ns, name, wasm_bytes, length, &err_msg);
-      ewa_wasm_function stfn = ewa_get_start_function(stat);
+      EwaModuleState stat = DefineWasmModule((WasmNamespace)ns, name, wasm_bytes, length, &err_msg);
+      WasmManagedFunction stfn = GetStartFunction(stat);
       if (stfn != NULL)
       {
-        ewa_call_wasm_function(stfn, sp);
+        CallFunction(stfn, sp);
       }
       ewa_rstack_put_ref(&sp, err_msg);
     }
@@ -484,7 +484,7 @@ namespace EwaVM
       char *name = (char *)ewa_rstack_get_ref(&sp);
       Namespace *ns = (Namespace *)namespace_GetNamespaceFormResolver(m->resolver);
       char *err_msg = NULL;
-      err_msg = ewa_namespace_remove_module((ewa_namespace)ns, name);
+      err_msg = RemoveNamespaceModule((WasmNamespace)ns, name);
       sp = fp;
       ewa_rstack_put_ref(&sp, err_msg);
     }
@@ -493,7 +493,7 @@ namespace EwaVM
     {
       void *sp = fp;
       RuntimeContext *m = (RuntimeContext *)ewa_rstack_get_ref(&sp);
-      struct ewa_symbol_resolve_request req;
+      struct EwaSymbolResolveRequest req;
       req.import_module = (char *)ewa_rstack_get_ref(&sp);
       req.import_field = (char *)ewa_rstack_get_ref(&sp);
       req.kind = ewa_rstack_get_i32(&sp);

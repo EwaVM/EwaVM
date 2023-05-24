@@ -1,4 +1,4 @@
-#include <def.h>
+#include <internal/def.h>
 
 #include <string.h>
 
@@ -394,7 +394,7 @@ namespace EwaVM
       {
         sv = sv2 - 1;
         sv2->frame_offset = sv->frame_offset + stackvalue_GetSizeAndAlign(sv, NULL);
-        if (ewa_gcfg.stack_flags & STACK_FLAGS_AUTO_ALIGN)
+        if (gConfig.stack_flags & STACK_FLAGS_AUTO_ALIGN)
         {
           sv2->frame_offset = stackvalue_GetAlignedOffset(sv2, sv2->frame_offset, NULL);
         }
@@ -466,7 +466,7 @@ namespace EwaVM
       }
       sv = m->stack + m->sp + 1; // first argument
 
-      if ((ewa_gcfg.stack_flags & STACK_FLAGS_AUTO_ALIGN) && ((sv->frame_offset & 7) > 0))
+      if ((gConfig.stack_flags & STACK_FLAGS_AUTO_ALIGN) && ((sv->frame_offset & 7) > 0))
       {
         // XXX: move stack value to align frame to 8 ,we should avoid this happen.
         sv->frame_offset += 4;
@@ -537,7 +537,7 @@ namespace EwaVM
       for (idx = 0; idx < len; idx++)
       {
         sv = &m->stack[m->sp - len + idx + 1];
-        if (ewa_gcfg.stack_flags & STACK_FLAGS_AUTO_ALIGN)
+        if (gConfig.stack_flags & STACK_FLAGS_AUTO_ALIGN)
         {
           ewa_EmitStoreStackValue(m, sv, SLJIT_MEM1(SLJIT_S0),
                                     stackvalue_GetAlignedOffset(sv, off, (uint32_t *)&off));
@@ -756,7 +756,7 @@ namespace EwaVM
         sv->wasm_type = m->function_type->params[i];
         sv->jit_type = SVT_GENERAL;
         sv->val.op = SLJIT_MEM1(SLJIT_S0);
-        if (ewa_gcfg.stack_flags & STACK_FLAGS_AUTO_ALIGN)
+        if (gConfig.stack_flags & STACK_FLAGS_AUTO_ALIGN)
         {
           sv->val.opw = stackvalue_GetAlignedOffset(sv, nextLoc, (uint32_t *)&nextLoc);
         }

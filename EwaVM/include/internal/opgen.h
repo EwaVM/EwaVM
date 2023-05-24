@@ -7,8 +7,15 @@ namespace EwaVM
 
    namespace OpGen
    {
-      // extfunc.c
 
+      // opgen.cpp
+      void SkipImmediates(uint8_t *bytes, uint32_t *pos);
+      char *PrepareFunc(ModuleCompiler *m);
+      char *GenCode(ModuleCompiler *m);
+      char *EmitFunction(ModuleCompiler *m, WasmFunction *func);
+      void FreeFunction(WasmFunctionEntry code);
+
+      // extfunc.c
       extern Type func_type_ret_void;
       extern Type func_type_ret_i32;
       extern Type func_type_ret_i64;
@@ -93,6 +100,8 @@ namespace EwaVM
       void insn_f64converti32u(double *fp);
       void insn_f64converti64s(double *fp);
       void insn_f64converti64u(double *fp);
+
+      
       void insn_memorygrow(void *fp);
       void insn_version(uint32_t *fp);
       void insn_memory_alloc(void *fp);
@@ -187,7 +196,7 @@ namespace EwaVM
       StackValue *stackvalue_FindSvalueUseReg(ModuleCompiler *m, sljit_s32 r,
                                               sljit_s32 regtype, int upstack);
       int ewa_EmitStoreStackValue(ModuleCompiler *m, StackValue *sv, int memreg,
-                                    int offset);
+                                  int offset);
       // 32bit arch only
       int ewa_EmitSaveStack(ModuleCompiler *m, StackValue *sv);
       int ewa_EmitSaveStackAll(ModuleCompiler *m);
@@ -197,12 +206,12 @@ namespace EwaVM
       StackValue *stackvalue_PushStackValueLike(ModuleCompiler *m, StackValue *refsv);
       void stackvalue_EmitSwapTopTwoValue(ModuleCompiler *m);
       int ewa_EmitCallFunc(ModuleCompiler *m, Type *type, sljit_s32 memreg,
-                             sljit_sw offset);
+                           sljit_sw offset);
       int ewa_EmitFuncReturn(ModuleCompiler *m);
       int stackvalue_AnyRegUsedBySvalue(StackValue *sv);
       sljit_s32 ewa_GetFreeReg(ModuleCompiler *m, sljit_s32 regtype, int upstack);
       sljit_s32 ewa_GetFreeRegExcept(ModuleCompiler *m, sljit_s32 regtype,
-                                       sljit_s32 except, int upstack);
+                                     sljit_s32 except, int upstack);
       void ewa_EmitStackValueLoadReg(ModuleCompiler *m, StackValue *sv);
       int ewa_EmitFuncEnter(ModuleCompiler *m);
       void opgen_GenI32Const(ModuleCompiler *m, uint32_t c);
@@ -210,13 +219,6 @@ namespace EwaVM
       void opgen_GenF32Const(ModuleCompiler *m, uint8_t *c);
       void opgen_GenF64Const(ModuleCompiler *m, uint8_t *c);
       void opgen_GenRefConst(ModuleCompiler *m, void *c);
-
-      // opgen.cpp
-      void skip_immediates(uint8_t *bytes, uint32_t *pos);
-      char *PrepareFunc(ModuleCompiler *m);
-      char *GenCode(ModuleCompiler *m);
-      char *EmitFunction(ModuleCompiler *m, WasmFunction *func);
-      void FreeFunction(WasmFunctionEntry code);
    };
 
 };

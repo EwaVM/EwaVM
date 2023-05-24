@@ -1,41 +1,41 @@
-#include <core.h>
-#include <def.h>
+#include <internal/core.h>
+#include <internal/def.h>
 
 #define EXPORT __attribute__((visibility("default")))
 
 namespace EwaVM
 {
-    EXPORT int ewa_get_version()
+    EXPORT int GetVersion()
     {
         return 1;
     }
 
-    EXPORT ewa_module_compiler ewa_new_module_compiler()
+    EXPORT EwaModuleCompiler NewModuleCompiler()
     {
         ModuleCompiler *m = (ModuleCompiler *)wa_calloc(sizeof(ModuleCompiler));
         return m;
     }
 
-    EXPORT char *ewa_free_module_compiler(ewa_module_compiler mod)
+    EXPORT char *FreeModuleCompiler(EwaModuleCompiler mod)
     {
         ModuleCompiler *m = (ModuleCompiler *)mod;
         free_module(m);
         return NULL;
     }
 
-    EXPORT char *ewa_free_module_state(ewa_module_state rc2)
+    EXPORT char *FreeModuleState(EwaModuleState rc2)
     {
         RuntimeContext *rc = (RuntimeContext *)rc2;
         free_runtimectx(rc);
         return NULL;
     }
 
-    EXPORT char *ewa_compile(ewa_module_compiler m, char *data, int len)
+    EXPORT char *Compile(EwaModuleCompiler m, char *data, int len)
     {
         return load_module((ModuleCompiler *)m, (uint8_t *)data, len);
     }
 
-    EXPORT ewa_wasm_function ewa_get_export_function(ewa_module_state rc, char *name)
+    EXPORT WasmManagedFunction GetExportFunction(EwaModuleState rc, char *name)
     {
         RuntimeContext *m = (RuntimeContext *)rc;
         uint32_t kind = SYMBOL_KIND_FUNCTION;
@@ -50,14 +50,14 @@ namespace EwaVM
         }
     }
 
-    EXPORT struct ewa_wasm_memory *ewa_get_export_memory(ewa_module_state rc, char *name)
+    EXPORT struct WasmManagedMemory *GetExportMemory(EwaModuleState rc, char *name)
     {
         RuntimeContext *m = (RuntimeContext *)rc;
         uint32_t kind = SYMBOL_KIND_MEMORY;
         Export *exp = (Export *)get_export((RuntimeContext *)rc, name, &kind);
         if (exp != NULL)
         {
-            return (struct ewa_wasm_memory *)exp->value;
+            return (struct WasmManagedMemory *)exp->value;
         }
         else
         {
@@ -65,7 +65,7 @@ namespace EwaVM
         }
     }
 
-    EXPORT void *ewa_get_export_global(ewa_module_state rc, char *name)
+    EXPORT void *GetExportGlobal(EwaModuleState rc, char *name)
     {
         RuntimeContext *m = (RuntimeContext *)rc;
         uint32_t kind = SYMBOL_KIND_GLOBAL;
@@ -80,14 +80,14 @@ namespace EwaVM
         }
     }
 
-    EXPORT struct ewa_wasm_table *ewa_get_export_table(ewa_module_state rc, char *name)
+    EXPORT struct WasmManagedTable *GetExportTable(EwaModuleState rc, char *name)
     {
         RuntimeContext *m = (RuntimeContext *)rc;
         uint32_t kind = SYMBOL_KIND_TABLE;
         Export *exp = get_export((RuntimeContext *)rc, name, &kind);
         if (exp != NULL)
         {
-            return (struct ewa_wasm_table *)exp->value;
+            return (struct WasmManagedTable *)exp->value;
         }
         else
         {
@@ -95,29 +95,29 @@ namespace EwaVM
         }
     }
 
-    EXPORT char *ewa_set_symbol_resolver(ewa_module_compiler m2, struct ewa_symbol_resolver *resolver)
+    EXPORT char *SetSymbolResovler(EwaModuleCompiler m2, struct EwaSymbolResolver *resolver)
     {
         ModuleCompiler *m = (ModuleCompiler *)m2;
         m->import_resolver = resolver;
         return NULL;
     }
 
-    EXPORT char *ewa_set_global_compile_config(struct ewa_global_compile_config *cfg)
+    EXPORT char *SetGlobalCompileConfig(struct EwaGlobalCompileConfig *cfg)
     {
-        memcpy(&ewa_gcfg, cfg, sizeof(struct ewa_global_compile_config));
+        memcpy(&gConfig, cfg, sizeof(struct EwaGlobalCompileConfig));
     };
-    EXPORT char *ewa_get_global_compile_config(struct ewa_global_compile_config *cfg)
+    EXPORT char *GetGlobalCompileConfig(struct EwaGlobalCompileConfig *cfg)
     {
-        memcpy(cfg, &ewa_gcfg, sizeof(struct ewa_global_compile_config));
+        memcpy(cfg, &gConfig, sizeof(struct EwaGlobalCompileConfig));
     }
 
-    EXPORT ewa_module_state ewa_get_module_state(ewa_module_compiler mod)
+    EXPORT EwaModuleState GetModuleState(EwaModuleCompiler mod)
     {
         ModuleCompiler *m = (ModuleCompiler *)mod;
         return m->context;
     }
 
-    EXPORT char *ewa_inspect_module_state(ewa_module_state c, struct ewa_inspect_result1 *result)
+    EXPORT char *InspectModuleState(EwaModuleState c, struct EwaInspectResult *result)
     {
         RuntimeContext *rc = (RuntimeContext *)c;
         if (rc->tables->len > 0)
@@ -138,25 +138,25 @@ namespace EwaVM
         return NULL;
     }
 
-    EXPORT char *ewa_set_state_symbol_resolver(ewa_module_state c, struct ewa_symbol_resolver *resolver)
+    EXPORT char *SetStateSymbolResolver(EwaModuleState c, struct EwaSymbolResolver *resolver)
     {
         RuntimeContext *rc = (RuntimeContext *)c;
         rc->resolver = resolver;
     }
 
-    EXPORT void ewa_module_state_set_user_data(ewa_module_state c, void *ud)
+    EXPORT void SetModuleStateUserData(EwaModuleState c, void *ud)
     {
         RuntimeContext *rc = (RuntimeContext *)c;
         rc->userdata = ud;
     }
 
-    EXPORT void *ewa_module_state_get_user_data(ewa_module_state c)
+    EXPORT void *GetModuleStateUserData(EwaModuleState c)
     {
         RuntimeContext *rc = (RuntimeContext *)c;
         return rc->userdata;
     }
 
-    EXPORT void *ewa_allocate_stack(int size)
+    EXPORT void *AllocateManagedStack(int size)
     {
         uint8_t *mem = (uint8_t *)wa_malloc(size + 16);
         uint8_t *stack_buffer = (uint8_t *)((((size_t)mem) + 16) & (~(size_t)(0xf)));
@@ -164,7 +164,7 @@ namespace EwaVM
         return stack_buffer;
     }
 
-    EXPORT void ewa_free_stack(void *stack)
+    EXPORT void FreeManagedStack(void *stack)
     {
         uint8_t *stack_buffer = (uint8_t *)stack;
         int off = stack_buffer[-1];
@@ -180,7 +180,7 @@ namespace EwaVM
     }
     EXPORT void ewa_rstack_put_i64(void **sp, long long val)
     {
-        if (ewa_gcfg.stack_flags & STACK_FLAGS_AUTO_ALIGN)
+        if (gConfig.stack_flags & STACK_FLAGS_AUTO_ALIGN)
         {
             size_t spv = (size_t)*sp;
             int t = (size_t)spv & 7;
@@ -201,7 +201,7 @@ namespace EwaVM
     }
     EXPORT void ewa_rstack_put_f64(void **sp, double val)
     {
-        if (ewa_gcfg.stack_flags & STACK_FLAGS_AUTO_ALIGN)
+        if (gConfig.stack_flags & STACK_FLAGS_AUTO_ALIGN)
         {
             size_t spv = (size_t)*sp;
             int t = (size_t)spv & 7;
@@ -216,7 +216,7 @@ namespace EwaVM
     }
     EXPORT void ewa_rstack_put_ref(void **sp, void *val)
     {
-        if ((ewa_gcfg.stack_flags & STACK_FLAGS_AUTO_ALIGN) && (sizeof(void *) == 8))
+        if ((gConfig.stack_flags & STACK_FLAGS_AUTO_ALIGN) && (sizeof(void *) == 8))
         {
             size_t spv = (size_t)*sp;
             int t = (size_t)spv & 7;
@@ -239,7 +239,7 @@ namespace EwaVM
     }
     EXPORT long long ewa_rstack_get_i64(void **sp)
     {
-        if (ewa_gcfg.stack_flags & STACK_FLAGS_AUTO_ALIGN)
+        if (gConfig.stack_flags & STACK_FLAGS_AUTO_ALIGN)
         {
             size_t spv = (size_t)*sp;
             int t = (size_t)spv & 7;
@@ -262,7 +262,7 @@ namespace EwaVM
     }
     EXPORT double ewa_rstack_get_f64(void **sp)
     {
-        if (ewa_gcfg.stack_flags & STACK_FLAGS_AUTO_ALIGN)
+        if (gConfig.stack_flags & STACK_FLAGS_AUTO_ALIGN)
         {
             size_t spv = (size_t)*sp;
             int t = (size_t)spv & 7;
@@ -278,7 +278,7 @@ namespace EwaVM
     }
     EXPORT void *ewa_rstack_get_ref(void **sp)
     {
-        if ((ewa_gcfg.stack_flags & STACK_FLAGS_AUTO_ALIGN) && (sizeof(void *) == 8))
+        if ((gConfig.stack_flags & STACK_FLAGS_AUTO_ALIGN) && (sizeof(void *) == 8))
         {
             size_t spv = (size_t)*sp;
             int t = (size_t)spv & 7;
@@ -293,42 +293,42 @@ namespace EwaVM
         return *sp2;
     }
 
-    EXPORT ewa_wasm_function ewa_wrap_host_function_c(ewa_host_function_c host_func)
+    EXPORT WasmManagedFunction WrapHostStdcFunction(ewa_host_function_c host_func)
     {
         // currently, we don't need wrap host function.
         return host_func;
     }
 
-    EXPORT void ewa_free_wrapped_function(ewa_wasm_function wrapped)
+    EXPORT void FreeWrappedFunction(WasmManagedFunction wrapped)
     {
     }
 
-    EXPORT void ewa_call_wasm_function(ewa_wasm_function fn, void *stack_pointer)
+    EXPORT void CallFunction(WasmManagedFunction fn, void *stack_pointer)
     {
         WasmFunctionEntry fn2 = (WasmFunctionEntry)fn;
         (*fn2)(stack_pointer);
     }
 
-    EXPORT ewa_module_state *ewa_load_module(char *data, int len, char **err_msg)
+    EXPORT EwaModuleState *LoadModule(char *data, int len, char **err_msg)
     {
         char *err = NULL;
-        ewa_module_state state = NULL;
-        ewa_module_compiler m = ewa_new_module_compiler();
-        err = ewa_compile(m, data, len);
+        EwaModuleState state = NULL;
+        EwaModuleCompiler m = NewModuleCompiler();
+        err = Compile(m, data, len);
         if (err == NULL)
         {
-            state = ewa_get_module_state(m);
+            state = GetModuleState(m);
         }
         else
         {
             if (err_msg != NULL)
                 *err_msg = err;
         }
-        ewa_free_module_compiler(m);
-        return (ewa_module_state *)state;
+        FreeModuleCompiler(m);
+        return (EwaModuleState *)state;
     }
 
-    EXPORT ewa_wasm_function ewa_get_start_function(ewa_module_state m)
+    EXPORT WasmManagedFunction GetStartFunction(EwaModuleState m)
     {
         RuntimeContext *rc = (RuntimeContext *)m;
         if (rc->start_function == 0xffffffff)
@@ -337,12 +337,12 @@ namespace EwaVM
         }
         else
         {
-            return (ewa_wasm_function)rc->funcentries[rc->start_function];
+            return (WasmManagedFunction)rc->funcentries[rc->start_function];
         }
     }
 
-    static struct dynarr *builtin_symbols = NULL; // type ewa_named_symbol
-    static struct ewa_wasm_memory native_memory = {
+    static struct dynarr *builtin_symbols = NULL; // type NamedSymbol
+    static struct WasmManagedMemory native_memory = {
         .initial = 0x7fffffff,
         .maximum = 0x7fffffff,
         .pages = 0x7fffffff,
@@ -350,17 +350,17 @@ namespace EwaVM
         .fixed = 1};
 
 #define _ADD_BUILTIN_FN(fname)                                           \
-    sym = dynarr_push_type(&builtin_symbols, struct ewa_named_symbol); \
+    sym = dynarr_push_type(&builtin_symbols, struct NamedSymbol); \
     sym->name = #fname;                                                  \
     sym->kind = SYMBOL_KIND_FUNCTION;                                     \
-    sym->val.fn = ewa_wrap_host_function_c((ewa_host_function_c)insn_##fname);
+    sym->val.fn = WrapHostStdcFunction((ewa_host_function_c)insn_##fname);
 
-    EXPORT struct ewa_named_symbol *ewa_get_builtin_symbols(int *arr_size)
+    EXPORT struct NamedSymbol *ewa_get_builtin_symbols(int *arr_size)
     {
         if (builtin_symbols == NULL)
         {
-            struct ewa_named_symbol *sym;
-            dynarr_init(&builtin_symbols, sizeof(struct ewa_named_symbol));
+            struct NamedSymbol *sym;
+            dynarr_init(&builtin_symbols, sizeof(struct NamedSymbol));
             _ADD_BUILTIN_FN(version)
             _ADD_BUILTIN_FN(memory_alloc)
             _ADD_BUILTIN_FN(memory_free)
@@ -368,16 +368,16 @@ namespace EwaVM
             _ADD_BUILTIN_FN(unload_module)
             _ADD_BUILTIN_FN(import)
             _ADD_BUILTIN_FN(get_self_runtime_context)
-            ewa_InlineFuncList.get_self_runtime_context = sym->val.fn;
+            InlineFuncList.get_self_runtime_context = sym->val.fn;
             _ADD_BUILTIN_FN(native_index_size)
             _ADD_BUILTIN_FN(ref_from_index)
-            ewa_InlineFuncList.ref_from_index = sym->val.fn;
+            InlineFuncList.ref_from_index = sym->val.fn;
             _ADD_BUILTIN_FN(ref_copy_bytes)
             _ADD_BUILTIN_FN(ref_string_length)
             _ADD_BUILTIN_FN(ref_from_i64)
-            ewa_InlineFuncList.ref_from_i64 = sym->val.fn;
+            InlineFuncList.ref_from_i64 = sym->val.fn;
             _ADD_BUILTIN_FN(i64_from_ref)
-            ewa_InlineFuncList.i64_from_ref = sym->val.fn;
+            InlineFuncList.i64_from_ref = sym->val.fn;
 
             _ADD_BUILTIN_FN(host_definition)
 
@@ -387,13 +387,13 @@ namespace EwaVM
             _ADD_BUILTIN_FN(fclose)
             _ADD_BUILTIN_FN(stdio)
 
-            sym = dynarr_push_type(&builtin_symbols, struct ewa_named_symbol);
+            sym = dynarr_push_type(&builtin_symbols, struct NamedSymbol);
             sym->name = "native_memory";
             sym->kind = SYMBOL_KIND_MEMORY;
             sym->val.mem = &native_memory;
         }
         *arr_size = builtin_symbols->len;
-        return (struct ewa_named_symbol *)&builtin_symbols->data;
+        return (struct NamedSymbol *)&builtin_symbols->data;
     }
 
 };
