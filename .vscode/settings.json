@@ -1,12 +1,4 @@
 {
     "files.associations": {
-        "opgen_mem.c": "cpp",
-        "utility": "cpp",
-        "xutility": "cpp",
-        "compare": "cpp",
-        "tuple": "cpp",
-        "type_traits": "cpp",
-        "xmemory": "cpp",
-        "xtr1common": "cpp"
     }
 }
