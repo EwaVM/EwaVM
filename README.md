@@ -47,4 +47,6 @@ Standrard: https://webassembly.org/
 
 SLJIT: https://github.com/zherczeg/sljit
 
+pwart: https://github.com/partic2/pwart
+
 Tools: https://github.com/WebAssembly/wabt
