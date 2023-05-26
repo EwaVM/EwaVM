@@ -28,6 +28,16 @@ Gitee: https://gitee.com/ewa-vm/EwaVM
 
 支持架构 (SLJIT)：X86/64、ARM/ARM64/AArch64、RISC-V 32/64、MIPS 32/64、PowerPC 32/64
 
+## 构建方法
+
+通过CMake一键构建:
+
+```shell
+cmake -S . -B build
+```
+
+同时，支持Visual Studio和VSCode的CMake插件一键构建
+
 ## 开发情况
 本项目长期开发维护，推荐大家使用VSCode开发环境
 - 本项目欢迎PR和Issue（Gitee仅支持Issue，提交PR请移步GitHub）
